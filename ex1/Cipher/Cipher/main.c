@@ -6,6 +6,8 @@
 
 int main (int argc, char *argv[])
 {
-	encode("hellworld", 0);
+	char * a = "Hello, world!";
+	encode(a, -26);
+	//printf(a);
 	return EXIT_FAILURE;
 }
