@@ -8,13 +8,17 @@
 int main (int argc, char *argv[])
 {
 	char * str = (char *)calloc(30, 1);
-	char * a = "Hello, world!";
+	char* str2 = (char*)calloc(30, 1);
+	char * a = "Hello, world!\n";
 	strcpy(str, a);
-	printf(str);
+	strcpy(str2, a);
 
-	encode(str, -1);
+	int shift = 20;
+	encode(str, shift);
 	printf(str);
-	decode(str, -1);
-	printf(str);
+	encode(str2, -shift);
+	printf(str2);
+	//decode(str, -1);
+	//printf(str);
 	return EXIT_FAILURE;
 }

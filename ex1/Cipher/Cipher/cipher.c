@@ -1,8 +1,9 @@
-#include <stdio.h>
 #include <ctype.h>
 #include "cipher.h"
 
-unsigned char manipulate_character(const char in, const int shift)
+#define LETTER_COUNT 26
+
+char manipulate_character(const char in, int shift)
 {
 	int new_char = in;
 	int new_shift = 0;
@@ -16,13 +17,15 @@ unsigned char manipulate_character(const char in, const int shift)
 
 	is_upper = isupper(new_char);
 	new_char = tolower(new_char);
-	new_shift = (new_char - 'a' + (shift % 25));
+	new_shift = (new_char - 'a'  + shift) % LETTER_COUNT;
 
+	// If the shift is negative, complete it to positive integer
 	if (new_shift < 0)
 	{
-		new_shift += 25;
+		new_shift += LETTER_COUNT;
 	}
 
+	// The new character is taken
 	new_char = 'a' + new_shift;
 
 	if (is_upper)
