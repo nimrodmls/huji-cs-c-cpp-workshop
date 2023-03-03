@@ -8,13 +8,13 @@
  * @param s - given string.
  * @param k - given shift value.
  */
-void encode (char s[], int k);
+void encode(char s[], int k);
 
 /**
  * Decodes the given string according to the given shift value - k.
  * @param s - given string.
  * @param k - given shift value.
  */
-void decode (char s[], int k);
+void decode(char s[], int k);
 
 #endif //CIPHER_H

@@ -3,7 +3,7 @@
 #
 
 # Add source to this project's executable.
-add_executable (Cipher "main.c")
+add_executable (Cipher "main.c" "cipher.c" "cipher.h" "tests.c" "tests.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Cipher PROPERTY CXX_STANDARD 20)

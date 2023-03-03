@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "cipher.h"
 #include "tests.h"
 
 int main (int argc, char *argv[])
 {
-	printf("Helloworld");
-	return 0;
+	encode("hellworld", 0);
+	return EXIT_FAILURE;
 }
