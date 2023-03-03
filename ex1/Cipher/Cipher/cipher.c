@@ -1,9 +1,15 @@
 #include <ctype.h>
 #include "cipher.h"
 
+// Letter count in the english alphabet
 #define LETTER_COUNT 26
 
-char manipulate_character(const char in, int shift)
+/**
+ * Shifts the given character within the English Alphabet
+ * @param in - The character to shift
+ * @param shift - The amount of characters to shift
+ */
+char manipulate_character(const char in, const int shift)
 {
 	int new_char = in;
 	int new_shift = 0;
@@ -41,12 +47,14 @@ void encode (char s[], int k)
 	unsigned long index = 0;
 	for (index = 0; s[index] != 0; index++)
 	{
-		s[index] = (char)manipulate_character(s[index], k);
+		s[index] = manipulate_character(s[index], k);
 	}
 }
 
 // See full documentation in header file
 void decode (char s[], int k)
 {
+	// Encode does the same as decode,
+	// but with "decoding" encryption key (the inverse)
 	encode(s, -k);
 }
