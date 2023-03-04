@@ -5,6 +5,8 @@
 #include "cipher.h"
 #include "tests.h"
 
+#define INVALID_ARGUMENT_COUNT 1
+
 #define ENCODE_COMMAND_STR "encode"
 #define DECODE_COMMAND_STR "decode"
 #define TEST_COMMAND_STR "test"
@@ -16,7 +18,16 @@ typedef enum _command
 	COMMAND_DECODE,
 	COMMAND_TEST
 
-} command, *pcommand;
+} command, *p_command;
+
+typedef enum _argument_index
+{
+	ARGUMENT_COMMAND = 1,
+	ARGUMENT_SHIFT,
+	ARGUMENT_IN_FILE,
+	ARGUMENT_OUT_FILE
+
+} argument_index, *p_argument_index;
 
 int get_file_data(
 	__in const char * file_path, __deref_out char ** out_data)
@@ -134,8 +145,8 @@ lblCleanup:
  */
 int encode_decode(command cmd, 
 				   int shift_count, 
-				   char * in_file, 
-				   char * out_file)
+				   const char * in_file, 
+				   const char * out_file)
 {
 	int is_successful = 0;
 	char* input = NULL;
@@ -206,22 +217,44 @@ lblCleanup:
 
 int main (int argc, char *argv[])
 {
-	char* out = NULL;
-	get_file_data("C:\\temp\\test.txt", &out);
-	printf(out);
-	write_file_data("c:\\temp\\test.txt", "helloworld", 11);
-	char * str = (char *)calloc(30, 1);
-	char* str2 = (char*)calloc(30, 1);
-	char * a = "Hello, world!\n";
-	strcpy(str, a);
-	strcpy(str2, a);
+	int exit_value = EXIT_FAILURE;
+	command cmd_type = COMMAND_INVALID;
+	int shift_count = 0;
 
-	int shift = 20;
-	encode(str, shift);
-	printf(str);
-	encode(str2, -shift);
-	printf(str2);
-	//decode(str, -1);
-	//printf(str);
-	return EXIT_FAILURE;
+	if (INVALID_ARGUMENT_COUNT == argc)
+	{
+		goto lblCleanup;
+	}
+
+	cmd_type = get_command_type(argv[ARGUMENT_COMMAND]);
+	if (COMMAND_INVALID == cmd_type)
+	{
+		goto lblCleanup;
+	}
+
+	if (COMMAND_TEST == cmd_type)
+	{
+		
+	}
+	else // Encode / Decode Command
+	{
+		shift_count = strtol(argv[ARGUMENT_SHIFT], NULL, 10);
+		if ((LONG_MAX == shift_count) || (LONG_MIN == shift_count))
+		{
+			goto lblCleanup;
+		}
+
+		if (!encode_decode(cmd_type,
+						   shift_count,
+					argv[ARGUMENT_IN_FILE],
+				   argv[ARGUMENT_OUT_FILE]))
+		{
+			goto lblCleanup;
+		}
+	}
+
+	exit_value = EXIT_SUCCESS;
+
+lblCleanup:
+	return exit_value;
 }
