@@ -6,7 +6,7 @@
 add_executable (Cipher "main.c" "cipher.c" "cipher.h" "tests.c" "tests.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET Cipher PROPERTY CXX_STANDARD 20)
+  set_property(TARGET Cipher PROPERTY C_STANDARD 99)
 endif()
 
 # TODO: Add tests and install targets if needed.

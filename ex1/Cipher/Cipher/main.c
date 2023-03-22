@@ -11,26 +11,28 @@
 #define DECODE_COMMAND_STR "decode"
 #define TEST_COMMAND_STR "test"
 
-typedef enum _command
+typedef enum _Command
 {
 	COMMAND_INVALID = 0,
 	COMMAND_ENCODE,
 	COMMAND_DECODE,
 	COMMAND_TEST
 
-} command, *p_command;
+} Command, *pCommand;
 
-typedef enum _argument_index
+typedef enum _ArgumentIndex
 {
 	ARGUMENT_COMMAND = 1,
 	ARGUMENT_SHIFT,
 	ARGUMENT_IN_FILE,
-	ARGUMENT_OUT_FILE
+	ARGUMENT_OUT_FILE,
 
-} argument_index, *p_argument_index;
+	ARGUMENT_MAX_ARGS
+
+} ArgumentIndex, *pArgumentIndex;
 
 int get_file_data(
-	__in const char * file_path, __deref_out char ** out_data)
+	const char * file_path, char ** out_data)
 {
 	FILE* file_handle = NULL;
 	char* file_data = NULL;
@@ -98,7 +100,7 @@ lblCleanup:
 }
 
 int write_file_data(
-	__in const char * file_path, __in const char * data, __in size_t data_size
+	const char * file_path, const char * data, size_t data_size
 )
 {
 	FILE* file_handle = NULL;
@@ -143,7 +145,7 @@ lblCleanup:
  * @param out_file - The file to decrypt
  * @return 0 on failure, 1 on success.
  */
-int encode_decode(command cmd, 
+int encode_decode(Command cmd, 
 				   int shift_count, 
 				   const char * in_file, 
 				   const char * out_file)
@@ -188,9 +190,9 @@ lblCleanup:
 	return is_successful;
 }
 
-command get_command_type(const char * cmd)
+Command get_command_type(const char * cmd)
 {
-	command out_cmd = COMMAND_INVALID;
+	Command out_cmd = COMMAND_INVALID;
 
 	if (0 == strcmp(cmd, DECODE_COMMAND_STR))
 	{
@@ -215,13 +217,23 @@ lblCleanup:
 	return out_cmd;
 }
 
+int run_tests()
+{
+	if (!test_encode_non_cyclic_lower_case_positive_k())
+	{
+		sprintf("Failed", "%s");
+	}
+	return 0;
+}
+
 int main (int argc, char *argv[])
 {
+	printf("test");
 	int exit_value = EXIT_FAILURE;
-	command cmd_type = COMMAND_INVALID;
+	Command cmd_type = COMMAND_INVALID;
 	int shift_count = 0;
 
-	if (INVALID_ARGUMENT_COUNT == argc)
+	if ((ARGUMENT_COMMAND > argc) || (ARGUMENT_MAX_ARGS < argc))
 	{
 		goto lblCleanup;
 	}
@@ -234,12 +246,15 @@ int main (int argc, char *argv[])
 
 	if (COMMAND_TEST == cmd_type)
 	{
-		
+		if (!run_tests())
+		{
+			goto lblCleanup;
+		}
 	}
 	else // Encode / Decode Command
 	{
 		shift_count = strtol(argv[ARGUMENT_SHIFT], NULL, 10);
-		if ((LONG_MAX == shift_count) || (LONG_MIN == shift_count))
+		if ((1 == shift_count) || (1 == shift_count))
 		{
 			goto lblCleanup;
 		}
