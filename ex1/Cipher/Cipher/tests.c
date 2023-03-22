@@ -13,7 +13,8 @@ typedef enum _ShiftValues
  * Checks if the given strings are cyclic or not
  * @param in - The original string
  * @param out - The manipulated (shifted) string
- * @param size - The size of the string
+ * @param size - The size of the strings, both strings
+ *				 should be OF THE SAME SIZE!
  */
 int is_non_cyclic(const char * in, const char * out, size_t size)
 {
@@ -30,7 +31,6 @@ int is_non_cyclic(const char * in, const char * out, size_t size)
 	}
 cleanup:
 	return non_cyclic;
-
 }
 
 // See full documentation in header file

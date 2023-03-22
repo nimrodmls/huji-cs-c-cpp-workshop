@@ -217,46 +217,78 @@ lblCleanup:
 	return out_cmd;
 }
 
-int run_tests()
+int run_encode_tests(void)
 {
-	if (!test_encode_non_cyclic_lower_case_positive_k())
-	{
-		sprintf("Failed", "%s");
-	}
-	return 0;
+	int test_val = 0;
+	test_val = 
+		test_encode_non_cyclic_lower_case_positive_k();
+	test_val = 
+		test_encode_cyclic_lower_case_special_char_positive_k();
+	test_val = 
+		test_encode_non_cyclic_lower_case_special_char_negative_k();
+	test_val = 
+		test_encode_cyclic_lower_case_negative_k();
+	test_val = 
+		test_encode_cyclic_upper_case_positive_k();
+	return !test_val;
+}
+
+int run_decode_tests(void)
+{
+	int test_val = 0;
+	test_val =
+		test_decode_non_cyclic_lower_case_positive_k();
+	test_val =
+		test_decode_cyclic_lower_case_special_char_positive_k();
+	test_val =
+		test_decode_non_cyclic_lower_case_special_char_negative_k();
+	test_val =
+		test_decode_cyclic_lower_case_negative_k();
+	test_val =
+		test_decode_cyclic_upper_case_positive_k();
+	return !test_val;
 }
 
 int main (int argc, char *argv[])
 {
-	printf("test");
 	int exit_value = EXIT_FAILURE;
 	Command cmd_type = COMMAND_INVALID;
 	int shift_count = 0;
 
 	if ((ARGUMENT_COMMAND > argc) || (ARGUMENT_MAX_ARGS < argc))
 	{
-		goto lblCleanup;
+		goto cleanup;
 	}
 
 	cmd_type = get_command_type(argv[ARGUMENT_COMMAND]);
 	if (COMMAND_INVALID == cmd_type)
 	{
-		goto lblCleanup;
+		goto cleanup;
 	}
 
+	// Executing either test or decode/encode command
 	if (COMMAND_TEST == cmd_type)
 	{
-		if (!run_tests())
+		if (!run_encode_tests())
 		{
-			goto lblCleanup;
+			goto cleanup;
 		}
+
+		if (!run_decode_tests())
+		{
+			goto cleanup;
+		}
+
+		// If and only if all tests passed,
+		//	changing the return value to success
+		exit_value = EXIT_SUCCESS;
 	}
 	else // Encode / Decode Command
 	{
 		shift_count = strtol(argv[ARGUMENT_SHIFT], NULL, 10);
-		if ((1 == shift_count) || (1 == shift_count))
+		if (0 == shift_count)
 		{
-			goto lblCleanup;
+			goto cleanup;
 		}
 
 		if (!encode_decode(cmd_type,
@@ -264,12 +296,12 @@ int main (int argc, char *argv[])
 					argv[ARGUMENT_IN_FILE],
 				   argv[ARGUMENT_OUT_FILE]))
 		{
-			goto lblCleanup;
+			goto cleanup;
 		}
 	}
 
 	exit_value = EXIT_SUCCESS;
 
-lblCleanup:
+cleanup:
 	return exit_value;
 }
