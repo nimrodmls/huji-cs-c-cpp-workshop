@@ -9,13 +9,20 @@
 #define __fallthrough
 #endif
 
-#define INVALID_ARGUMENT_COUNT 1
+#define READ_BUFFER_SIZE (1024)
 
+// File opening modes
+#define FILE_WRITE "w"
+#define FILE_READ "r"
+
+// Command strings
 #define ENCODE_COMMAND_STR "encode"
 #define DECODE_COMMAND_STR "decode"
 #define TEST_COMMAND_STR "test"
 
-typedef enum _Command
+// Print strings
+
+typedef enum Command
 {
 	COMMAND_INVALID = 0,
 	COMMAND_ENCODE,
@@ -24,7 +31,7 @@ typedef enum _Command
 
 } Command, *pCommand;
 
-typedef enum _ArgumentIndex
+typedef enum ArgumentIndex
 {
 	ARGUMENT_COMMAND = 1,
 	ARGUMENT_SHIFT,
@@ -35,128 +42,65 @@ typedef enum _ArgumentIndex
 
 } ArgumentIndex, *pArgumentIndex;
 
-int get_file_data(
-	const char * file_path, char ** out_data)
+int check_file_handle(const FILE* file_handle)
 {
-	FILE* file_handle = NULL;
-	char* file_data = NULL;
-	unsigned long file_size = 0;
-	size_t read_bytes = 0;
-	int is_successful = 0;
-	
-	if (NULL == file_path || NULL == out_data)
-	{
-		goto lblCleanup;
-	}
-
-	file_handle = fopen(file_path, "r");
-	if (NULL == file_handle)
-	{
-		goto lblCleanup;
-	}
-
-	if (0 != fseek(file_handle, 0, SEEK_END))
-	{
-		goto lblCleanup;
-	}
-
-	file_size = ftell(file_handle);
-	rewind(file_handle);
-
-	// Allocating +1 for the file data in order to make space
-	// for the null-terminator
-	file_data = calloc(file_size + 1, sizeof(char));
-	if (NULL == file_data)
-	{
-		goto lblCleanup;
-	}
-
-	read_bytes = fread(file_data, sizeof(char), file_size, file_handle);
-	if (file_size != read_bytes)
-	{
-		goto lblCleanup;
-	}
-
-	if (ferror(file_handle))
-	{
-		goto lblCleanup;
-	}
-
-	// Transferring ownership over the data
-	*out_data = file_data;
-	file_data = NULL;
-	is_successful = 1;
-
-lblCleanup:
-	if (NULL != file_handle)
-	{
-		(void)fclose(file_handle);
-		file_handle = NULL;
-	}
-
-	if (NULL != file_data)
-	{
-		free(file_data);
-		file_data = NULL;
-	}
-
-	return is_successful;
+	int result = 0;
+	result += ferror(file_handle);
+	result += feof(file_handle);
+	return result;
 }
 
-int write_file_data(
-	const char * file_path, const char * data, size_t data_size
-)
+void encode_decode_file(Command cmd,
+						 int shift_count,
+						 const FILE* in_file,
+						 const FILE* out_file)
 {
-	FILE* file_handle = NULL;
-	size_t written_data = 0;
-	int is_successful = 0;
-
-	if (NULL == file_path || NULL == data)
+	char read_buffer[READ_BUFFER_SIZE] = { 0 };
+	char* read_result = NULL;
+	do
 	{
-		goto lblCleanup;
-	}
+		read_result = fgets(read_buffer, sizeof(read_buffer), in_file);
+		if (NULL == read_result)
+		{
+			return;
+		}
 
-	file_handle = fopen(file_path, "w");
-	if (NULL == file_handle)
-	{
-		goto lblCleanup;
-	}
+		switch (cmd)
+		{
+		case COMMAND_ENCODE:
+			encode(read_result, shift_count);
+			break;
+		case COMMAND_DECODE:
+			decode(read_result, shift_count);
+			break;
+		}
 
-	written_data = fwrite(data, sizeof(char), data_size, file_handle);
-	if (written_data != data_size)
-	{
-		goto lblCleanup;
-	}
+		if (EOF == fputs(read_result, out_file))
+		{
+			return;
+		}
 
-	is_successful = 1;
-
-lblCleanup:
-
-	if (NULL != file_handle)
-	{
-		(void)fclose(file_handle);
-		file_handle = NULL;
-	}
-
-	return is_successful;
+	} while ((0 != check_file_handle(in_file)) &&
+			 (0 != check_file_handle(out_file)));
 }
 
 /**
  * Executes encode/decode operation depending on the input cmd
  * @param cmd - The Command to execute (either decode/encode are acceptable)
  * @param shift - The amount of shift to perform in cipher (as numerical string)
- * @param in_file - The file to encrypt
- * @param out_file - The file to decrypt
+ * @param in_file_path - The file to encrypt
+ * @param out_file_path - The file to decrypt
  * @return 0 on failure, 1 on success.
  */
 int encode_decode(Command cmd, 
 				   const char * shift,
-				   const char * in_file, 
-				   const char * out_file)
+				   const char * in_file_path,
+				   const char * out_file_path)
 {
 	int is_successful = 0;
-	char* input = NULL;
 	int shift_count = 0;
+	FILE* in_file_handle = NULL;
+	FILE* out_file_handle = NULL;
 
 	errno = 0; // Setting errno to 0 to make sure strstol failed
 	shift_count = strtol(shift, NULL, 10);
@@ -166,36 +110,19 @@ int encode_decode(Command cmd,
 		goto cleanup;
 	}
 
-	if (!get_file_data(in_file, &input))
+	in_file_handle = fopen(in_file_path, FILE_READ);
+	out_file_handle = fopen(out_file_path, FILE_WRITE);
+	if ((NULL == in_file_handle) || (NULL == out_file_handle))
 	{
 		fprintf(stderr, "The given file is invalid.\n");
 		goto cleanup;
 	}
-
-	if (COMMAND_ENCODE == cmd)
-	{
-		encode(input, shift_count);
-	}
-	else if (COMMAND_DECODE == cmd)
-	{
-		decode(input, shift_count);
-	}
-
-	if (!write_file_data(out_file, input, strlen(input)))
-	{
-		fprintf(stderr, "The given file is invalid.\n");
-		goto cleanup;
-	}
+	
+	encode_decode_file(cmd, shift_count, in_file_handle, out_file_handle);
 
 	is_successful = 1;
 
 cleanup:
-
-	if (NULL != input)
-	{
-		free(input);
-		input = NULL;
-	}
 
 	return is_successful;
 }
