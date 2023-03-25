@@ -2,10 +2,13 @@
 
 #include "tests.h"
 
-typedef enum _ShiftValues
+typedef enum ShiftValues
 {
+	SHIFT_N_1 = -1,
+	SHIFT_N_3 = -3,
 	SHIFT_2 = 2,
 	SHIFT_3,
+	SHIFT_29 = 29,
 
 } ShiftValues, * pShiftValues;
 
@@ -16,7 +19,9 @@ typedef enum _ShiftValues
  * @param size - The size of the strings, both strings
  *				 should be OF THE SAME SIZE!
  */
-int is_non_cyclic(const char * in, const char * out, size_t size)
+int is_non_cyclic(const char * in, 
+				  const char * out, 
+				  size_t size)
 {
 	size_t iter = 0;
 	int non_cyclic = 1;
@@ -36,13 +41,8 @@ cleanup:
 // See full documentation in header file
 int test_encode_non_cyclic_lower_case_positive_k ()
 {
-  char in[] = "simple string";
-  const char out[] = "vlpsoh vwulqj";
-
-  if (!is_non_cyclic(in, out, strlen(in)))
-  {
-	  return 1;
-  }
+  char in[] = "simplestring";
+  const char out[] = "vlpsohvwulqj";
 
   encode(in, SHIFT_3);
   return 0 != strcmp(in, out);
@@ -51,25 +51,41 @@ int test_encode_non_cyclic_lower_case_positive_k ()
 // See full documentation in header file
 int test_encode_cyclic_lower_case_special_char_positive_k ()
 {
-	char in[] = "";
+	char in[] = "zhis iz zyclic! and zpecial!\n";
+	const char out[] = "bjku kb baenke! cpf brgekcn!\n";
+
+	encode(in, SHIFT_2);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_encode_non_cyclic_lower_case_special_char_negative_k ()
 {
-  // your code goes here
+	char in[] = "simple string!\n";
+	const char out[] = "rhlokd rsqhmf!\n";
+
+	encode(in, SHIFT_N_1);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_encode_cyclic_lower_case_negative_k ()
 {
-  // your code goes here
+	char in[] = "cyclicyclic";
+	const char out[] = "zvzifzvzifz";
+
+	encode(in, SHIFT_N_3);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_encode_cyclic_upper_case_positive_k ()
 {
-  // your code goes here
+	char in[] = "CYCLICYCLIC";
+	const char out[] = "FBFOLFBFOLF";
+
+	encode(in, SHIFT_29);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file

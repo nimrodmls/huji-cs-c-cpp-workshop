@@ -39,7 +39,9 @@ typedef enum Command
 
 // Argument indices for the command line arguments
 typedef enum ArgumentIndex
-{
+{	
+	ARGUMENT_MIN_ARGS = 2,
+
 	ARGUMENT_COMMAND = 1,
 	ARGUMENT_SHIFT,
 	ARGUMENT_IN_FILE,
@@ -201,7 +203,7 @@ int main (int argc, char * argv[])
 	Command cmd_type = COMMAND_INVALID;
 	int shift_count = 0;
 
-	if ((ARGUMENT_COMMAND != argc) && (ARGUMENT_MAX_ARGS != argc))
+	if ((ARGUMENT_MIN_ARGS != argc) && (ARGUMENT_MAX_ARGS != argc))
 	{
 		fprintf(stderr, INVALID_INPUT_PROMPT);
 		goto cleanup;
@@ -213,6 +215,7 @@ int main (int argc, char * argv[])
 	case COMMAND_TEST:
 		if (!run_tests())
 		{
+			printf("TEMPORARY - TESTS FAILED\n");
 			goto cleanup;
 		}
 		break;
