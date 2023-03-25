@@ -2,7 +2,7 @@
 #include "cipher.h"
 
 // Letter count in the english alphabet
-#define LETTER_COUNT 26
+#define LETTER_COUNT (26)
 
 /**
  * Shifts the given character within the English Alphabet
@@ -12,7 +12,7 @@
 char manipulate_character(const char in, const int shift)
 {
 	int new_char = in;
-	int new_shift = 0;
+	int new_shift = shift % LETTER_COUNT;
 	int is_upper = 0;
 
 	// Validating the character is in the alphabetic, otherwise ignore
@@ -21,23 +21,26 @@ char manipulate_character(const char in, const int shift)
 		return in;
 	}
 
+	// If the character is upper-case when make it lower-case,
+	// and shifts it within the lower-case portion of the ASCII
 	is_upper = isupper(new_char);
-	new_char = tolower(new_char);
-	new_shift = (new_char - 'a'  + shift) % LETTER_COUNT;
-
-	// If the shift is negative, complete it to positive integer
-	if (new_shift < 0)
+	new_char = tolower(new_char) + (shift % LETTER_COUNT);
+	
+	// Checking if the shift caused a cycle-situation
+	if (new_char < 'a')
 	{
-		new_shift += LETTER_COUNT;
+		new_char += LETTER_COUNT;
 	}
-
-	// The new character is taken
-	new_char = 'a' + new_shift;
+	else if (new_char > 'z')
+	{
+		new_char -= LETTER_COUNT;
+	}
 
 	if (is_upper)
 	{
 		return toupper(new_char);
 	}
+
 	return new_char;
 }
 
