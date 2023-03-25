@@ -12,16 +12,22 @@
 #define READ_BUFFER_SIZE (1024)
 
 // File opening modes
-#define FILE_WRITE "w"
-#define FILE_READ "r"
+#define FILE_WRITE ("w")
+#define FILE_READ ("r")
 
 // Command strings
-#define ENCODE_COMMAND_STR "encode"
-#define DECODE_COMMAND_STR "decode"
-#define TEST_COMMAND_STR "test"
+#define ENCODE_COMMAND_STR ("encode")
+#define DECODE_COMMAND_STR ("decode")
+#define TEST_COMMAND_STR ("test")
 
-// Print strings
+// Prompt strings
+#define FILE_ERROR_PROMPT ("The given file is invalid.\n")
+#define INVALID_INPUT_PROMPT ("The program receives 1 or 4 arguments only.\n")
+#define INVALID_COMMAND_PROMPT ("The given command is invalid.\n")
+#define INVALID_TEST_PROMPT ("cipher test\n")
+#define INVALID_SHIFT_PROMPT ("The given shift value is invalid,\n")
 
+// Valid command types
 typedef enum Command
 {
 	COMMAND_INVALID = 0,
@@ -31,6 +37,7 @@ typedef enum Command
 
 } Command, *pCommand;
 
+// Argument indices for the command line arguments
 typedef enum ArgumentIndex
 {
 	ARGUMENT_COMMAND = 1,
@@ -80,22 +87,22 @@ void encode_decode_file(Command cmd,
 			return;
 		}
 
-	} while ((0 != check_file_handle(in_file)) &&
-			 (0 != check_file_handle(out_file)));
+	} while ((0 == check_file_handle(in_file)) &&
+			 (0 == check_file_handle(out_file)));
 }
 
 /**
- * Executes encode/decode operation depending on the input cmd
- * @param cmd - The Command to execute (either decode/encode are acceptable)
- * @param shift - The amount of shift to perform in cipher (as numerical string)
+ * Executes encode/decode operation depending on the input command
+ * @param cmd - The Command to execute (decode/encode are acceptable)
+ * @param shift - The amount of shift to perform in cipher
  * @param in_file_path - The file to encrypt
  * @param out_file_path - The file to decrypt
  * @return 0 on failure, 1 on success.
  */
 int encode_decode(Command cmd, 
-				   const char * shift,
-				   const char * in_file_path,
-				   const char * out_file_path)
+				  const char * shift,
+				  const char * in_file_path,
+				  const char * out_file_path)
 {
 	int is_successful = 0;
 	int shift_count = 0;
@@ -106,7 +113,7 @@ int encode_decode(Command cmd,
 	shift_count = strtol(shift, NULL, 10);
 	if ((0 == shift_count) && (errno != 0))
 	{
-		fprintf(stderr, "The given shift value is invalid,\n");
+		fprintf(stderr, INVALID_SHIFT_PROMPT);
 		goto cleanup;
 	}
 
@@ -114,7 +121,7 @@ int encode_decode(Command cmd,
 	out_file_handle = fopen(out_file_path, FILE_WRITE);
 	if ((NULL == in_file_handle) || (NULL == out_file_handle))
 	{
-		fprintf(stderr, "The given file is invalid.\n");
+		fprintf(stderr, FILE_ERROR_PROMPT);
 		goto cleanup;
 	}
 	
@@ -123,6 +130,14 @@ int encode_decode(Command cmd,
 	is_successful = 1;
 
 cleanup:
+	if (NULL != in_file_handle)
+	{
+		(void)fclose(in_file_handle);
+	}
+	if (NULL != out_file_handle)
+	{
+		(void)fclose(out_file_handle);
+	}
 
 	return is_successful;
 }
@@ -186,9 +201,9 @@ int main (int argc, char * argv[])
 	Command cmd_type = COMMAND_INVALID;
 	int shift_count = 0;
 
-	if ((ARGUMENT_COMMAND > argc) || (ARGUMENT_MAX_ARGS < argc))
+	if ((ARGUMENT_COMMAND != argc) && (ARGUMENT_MAX_ARGS != argc))
 	{
-		fprintf(stderr, "The program receives 1 or 4 arguments only.\n");
+		fprintf(stderr, INVALID_INPUT_PROMPT);
 		goto cleanup;
 	}
 
@@ -200,7 +215,6 @@ int main (int argc, char * argv[])
 		{
 			goto cleanup;
 		}
-
 		break;
 	case COMMAND_DECODE:
 		__fallthrough;
@@ -212,18 +226,22 @@ int main (int argc, char * argv[])
 		{
 			goto cleanup;
 		}
-
 		break;
 	default:
 		// If the program received only 1 argument and it's not test command
 		if (ARGUMENT_COMMAND == argc)
 		{
-			fprintf(stderr, "cipher test\n");
+			fprintf(stderr, INVALID_TEST_PROMPT);
+			goto cleanup;
+		}
+		else if (ARGUMENT_MAX_ARGS == argc)
+		{
+			fprintf(stderr, INVALID_COMMAND_PROMPT);
+			goto cleanup;
 		}
 	}
 
 	exit_value = EXIT_SUCCESS;
-
 cleanup:
 	return exit_value;
 }

@@ -48,7 +48,7 @@ char manipulate_character(const char in, const int shift)
 void encode (char s[], int k)
 {
 	unsigned long index = 0;
-	for (index = 0; s[index] != 0; index++)
+	for (index = 0; NULL != s[index]; index++)
 	{
 		s[index] = manipulate_character(s[index], k);
 	}
