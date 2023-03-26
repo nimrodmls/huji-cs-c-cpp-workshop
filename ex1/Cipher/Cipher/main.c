@@ -51,7 +51,7 @@ typedef enum ArgumentIndex
 
 } ArgumentIndex, *pArgumentIndex;
 
-int check_file_handle(const FILE* file_handle)
+int check_file_handle(FILE* file_handle)
 {
 	int result = 0;
 	result += ferror(file_handle);
@@ -59,13 +59,48 @@ int check_file_handle(const FILE* file_handle)
 	return result;
 }
 
-void encode_decode_file(Command cmd,
-						 int shift_count,
-						 const FILE* in_file,
-						 const FILE* out_file)
+/**
+ * Converts a string to long (with validity checks)
+ * @param in - The string to convert
+ * @param out - The output converted value
+ */
+int convert_str_to_long(const char * in, long * out)
+{
+	int status = 0;
+	long conv = 0;
+	char* result = NULL;
+
+	if (NULL == out)
+	{
+		goto cleanup;
+	}
+
+	errno = 0; // Setting errno to 0 to make sure strstol failed
+	conv = strtol(in, &result, 10);
+	// Dealing with all failure cases for conversion - 
+	// if errno is set, or the string has non-numerical chars
+	if (((0 == conv) && (errno != 0)) || 
+		(0 != *result))
+	{
+		goto cleanup;
+	}
+
+	*out = conv;
+	status = 1;
+
+cleanup:
+	return status;
+}
+
+void encode_decode_file(const Command cmd,
+						const int shift_count,
+						FILE* in_file,
+						FILE* out_file)
 {
 	char read_buffer[READ_BUFFER_SIZE] = { 0 };
 	char* read_result = NULL;
+
+	// Encoding/Decoding a single line in each iteration
 	do
 	{
 		read_result = fgets(read_buffer, sizeof(read_buffer), in_file);
@@ -82,6 +117,8 @@ void encode_decode_file(Command cmd,
 		case COMMAND_DECODE:
 			decode(read_result, shift_count);
 			break;
+		default:
+			return;
 		}
 
 		if (EOF == fputs(read_result, out_file))
@@ -107,15 +144,13 @@ int encode_decode(Command cmd,
 				  const char * out_file_path)
 {
 	int is_successful = 0;
-	int shift_count = 0;
+	long shift_count = 0;
 	FILE* in_file_handle = NULL;
 	FILE* out_file_handle = NULL;
 
-	errno = 0; // Setting errno to 0 to make sure strstol failed
-	shift_count = strtol(shift, NULL, 10);
-	if ((0 == shift_count) && (errno != 0))
+	if (!convert_str_to_long(shift, &shift_count))
 	{
-		fprintf(stderr, INVALID_SHIFT_PROMPT);
+		(void)fprintf(stderr, INVALID_SHIFT_PROMPT);
 		goto cleanup;
 	}
 
@@ -123,7 +158,7 @@ int encode_decode(Command cmd,
 	out_file_handle = fopen(out_file_path, FILE_WRITE);
 	if ((NULL == in_file_handle) || (NULL == out_file_handle))
 	{
-		fprintf(stderr, FILE_ERROR_PROMPT);
+		(void)fprintf(stderr, FILE_ERROR_PROMPT);
 		goto cleanup;
 	}
 	
@@ -144,6 +179,11 @@ cleanup:
 	return is_successful;
 }
 
+/**
+ * Parsing and converting the command line parameter for the command
+ * @param cmd - The string of the command
+ * @return The command, COMMAND_INVALID if no command has been found
+ */
 Command get_command_type(const char * cmd)
 {
 	Command out_cmd = COMMAND_INVALID;
@@ -205,7 +245,7 @@ int main (int argc, char * argv[])
 
 	if ((ARGUMENT_MIN_ARGS != argc) && (ARGUMENT_MAX_ARGS != argc))
 	{
-		fprintf(stderr, INVALID_INPUT_PROMPT);
+		(void)fprintf(stderr, INVALID_INPUT_PROMPT);
 		goto cleanup;
 	}
 
@@ -234,12 +274,12 @@ int main (int argc, char * argv[])
 		// If the program received only 1 argument and it's not test command
 		if (ARGUMENT_COMMAND == argc)
 		{
-			fprintf(stderr, INVALID_TEST_PROMPT);
+			(void)fprintf(stderr, INVALID_TEST_PROMPT);
 			goto cleanup;
 		}
 		else if (ARGUMENT_MAX_ARGS == argc)
 		{
-			fprintf(stderr, INVALID_COMMAND_PROMPT);
+			(void)fprintf(stderr, INVALID_COMMAND_PROMPT);
 			goto cleanup;
 		}
 	}

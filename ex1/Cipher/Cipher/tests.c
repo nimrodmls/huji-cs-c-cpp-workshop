@@ -2,6 +2,7 @@
 
 #include "tests.h"
 
+// Valid shift values used for the different tests
 typedef enum ShiftValues
 {
 	SHIFT_N_1 = -1,
@@ -91,32 +92,49 @@ int test_encode_cyclic_upper_case_positive_k ()
 // See full documentation in header file
 int test_decode_non_cyclic_lower_case_positive_k ()
 {
-  char in[] = "def";
-  char out[] = "abc";
-  decode (in, SHIFT_3);
-  return strcmp (in, out) != 0;
+	char in[] = "vlpsohvwulqj";
+	const char out[] = "simplestring";
+
+	decode(in, SHIFT_3);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_decode_cyclic_lower_case_special_char_positive_k ()
 {
-  // your code goes here
+	char in[] = "bjku kb baenke! cpf brgekcn!\n";
+	const char out[] = "zhis iz zyclic! and zpecial!\n";
+
+	decode(in, SHIFT_2);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_decode_non_cyclic_lower_case_special_char_negative_k ()
 {
-  // your code goes here
+	char in[] = "rhlokd rsqhmf!\n";
+	const char out[] = "simple string!\n";
+
+	decode(in, SHIFT_N_1);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_decode_cyclic_lower_case_negative_k ()
 {
-  // your code goes here
+	char in[] = "zvzifzvzifz";
+	const char out[] = "cyclicyclic";
+
+	decode(in, SHIFT_N_3);
+	return 0 != strcmp(in, out);
 }
 
 // See full documentation in header file
 int test_decode_cyclic_upper_case_positive_k ()
 {
-  // your code goes here
+	char in[] = "FBFOLFBFOLF";
+	const char out[] = "CYCLICYCLIC";
+
+	decode(in, SHIFT_29);
+	return 0 != strcmp(in, out);
 }
