@@ -12,7 +12,6 @@
 char manipulate_character(const char in, const int shift)
 {
 	int new_char = in;
-	int new_shift = shift % LETTER_COUNT;
 	int is_upper = 0;
 
 	// Validating the character is in the alphabetic, otherwise ignore

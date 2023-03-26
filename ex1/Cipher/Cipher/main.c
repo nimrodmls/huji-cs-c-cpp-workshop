@@ -1,14 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "cipher.h"
 #include "tests.h"
 
-#ifndef __fallthrough
-#define __fallthrough
-#endif
-
+#define DECIMAL_BASE (10)
 #define READ_BUFFER_SIZE (1024)
 
 // File opening modes
@@ -24,8 +22,17 @@
 #define FILE_ERROR_PROMPT ("The given file is invalid.\n")
 #define INVALID_INPUT_PROMPT ("The program receives 1 or 4 arguments only.\n")
 #define INVALID_COMMAND_PROMPT ("The given command is invalid.\n")
-#define INVALID_TEST_PROMPT ("cipher test\n")
-#define INVALID_SHIFT_PROMPT ("The given shift value is invalid,\n")
+#define INVALID_TEST_PROMPT ("Usage: cipher test\n")
+#define INVALID_SHIFT_PROMPT ("The given shift value is invalid.\n")
+
+typedef enum CipherStatus
+{
+	CIPHER_STATUS_FAILED = EXIT_FAILURE,
+	CIPHER_STATUS_SUCCESS = EXIT_SUCCESS
+
+} CipherStatus, * pCipherStatus;
+
+#define CIPHER_STATUS_FAILURE(result) (result != CIPHER_STATUS_SUCCESS)
 
 // Valid command types
 typedef enum Command
@@ -64,9 +71,9 @@ int check_file_handle(FILE* file_handle)
  * @param in - The string to convert
  * @param out - The output converted value
  */
-int convert_str_to_long(const char * in, long * out)
+CipherStatus convert_str_to_long(const char * in, long * out)
 {
-	int status = 0;
+	CipherStatus status = CIPHER_STATUS_FAILED;
 	long conv = 0;
 	char* result = NULL;
 
@@ -76,7 +83,7 @@ int convert_str_to_long(const char * in, long * out)
 	}
 
 	errno = 0; // Setting errno to 0 to make sure strstol failed
-	conv = strtol(in, &result, 10);
+	conv = strtol(in, &result, DECIMAL_BASE);
 	// Dealing with all failure cases for conversion - 
 	// if errno is set, or the string has non-numerical chars
 	if (((0 == conv) && (errno != 0)) || 
@@ -86,7 +93,7 @@ int convert_str_to_long(const char * in, long * out)
 	}
 
 	*out = conv;
-	status = 1;
+	status = CIPHER_STATUS_SUCCESS;
 
 cleanup:
 	return status;
@@ -136,19 +143,20 @@ void encode_decode_file(const Command cmd,
  * @param shift - The amount of shift to perform in cipher
  * @param in_file_path - The file to encrypt
  * @param out_file_path - The file to decrypt
- * @return 0 on failure, 1 on success.
+ * @return CIPHER_STATUS_SUCCESS on success, otherwise error
  */
-int encode_decode(Command cmd, 
+CipherStatus encode_decode(Command cmd,
 				  const char * shift,
 				  const char * in_file_path,
 				  const char * out_file_path)
 {
-	int is_successful = 0;
+	CipherStatus status = CIPHER_STATUS_FAILED;
 	long shift_count = 0;
 	FILE* in_file_handle = NULL;
 	FILE* out_file_handle = NULL;
 
-	if (!convert_str_to_long(shift, &shift_count))
+	if (CIPHER_STATUS_FAILURE(
+		convert_str_to_long(shift, &shift_count)))
 	{
 		(void)fprintf(stderr, INVALID_SHIFT_PROMPT);
 		goto cleanup;
@@ -164,7 +172,7 @@ int encode_decode(Command cmd,
 	
 	encode_decode_file(cmd, shift_count, in_file_handle, out_file_handle);
 
-	is_successful = 1;
+	status = CIPHER_STATUS_SUCCESS;
 
 cleanup:
 	if (NULL != in_file_handle)
@@ -176,7 +184,7 @@ cleanup:
 		(void)fclose(out_file_handle);
 	}
 
-	return is_successful;
+	return status;
 }
 
 /**
@@ -237,54 +245,83 @@ int run_tests(void)
 	return !test_val;
 }
 
-int main (int argc, char * argv[])
+CipherStatus validate_parameters(int argc, Command cmd_type)
 {
-	int exit_value = EXIT_FAILURE;
-	Command cmd_type = COMMAND_INVALID;
-	int shift_count = 0;
+	CipherStatus status = CIPHER_STATUS_FAILED;
 
-	if ((ARGUMENT_MIN_ARGS != argc) && (ARGUMENT_MAX_ARGS != argc))
+	// If the program received the minimal amount of arguments
+	// but it's not the test command
+	if ((cmd_type != COMMAND_TEST) && (ARGUMENT_MIN_ARGS == argc))
+	{
+		(void)fprintf(stderr, INVALID_TEST_PROMPT);
+		goto cleanup;
+	}
+	// If the program received 4 arguments but the command is 
+	// not encode/decode
+	else if ((cmd_type != COMMAND_DECODE) && 
+			 (cmd_type != COMMAND_ENCODE) &&
+			 ARGUMENT_MAX_ARGS == argc)
+	{
+		(void)fprintf(stderr, INVALID_COMMAND_PROMPT);
+		goto cleanup;
+	}
+	else if (((cmd_type == COMMAND_ENCODE) || 
+			  (cmd_type == COMMAND_DECODE)) &&
+			 ARGUMENT_MAX_ARGS > argc)
+	{
+		(void)fprintf(stderr, INVALID_INPUT_PROMPT);
+		goto cleanup;
+	}
+
+	status = CIPHER_STATUS_SUCCESS;
+
+cleanup:
+	return status;
+}
+
+int main(int argc, char * argv[])
+{
+	CipherStatus exit_value = CIPHER_STATUS_FAILED;
+	Command cmd_type = COMMAND_INVALID;
+
+	if ((ARGUMENT_MIN_ARGS > argc) || (ARGUMENT_MAX_ARGS < argc))
 	{
 		(void)fprintf(stderr, INVALID_INPUT_PROMPT);
 		goto cleanup;
 	}
 
 	cmd_type = get_command_type(argv[ARGUMENT_COMMAND]);
+	exit_value = validate_parameters(argc, cmd_type);
+	if (CIPHER_STATUS_FAILURE(exit_value))
+	{
+		goto cleanup;
+	}
+
 	switch (cmd_type)
 	{
 	case COMMAND_TEST:
 		if (!run_tests())
 		{
-			printf("TEMPORARY - TESTS FAILED\n");
 			goto cleanup;
 		}
 		break;
 	case COMMAND_DECODE:
-		__fallthrough;
+		// fallthrough
 	case COMMAND_ENCODE:
-		if (!encode_decode(cmd_type,
-						   argv[ARGUMENT_SHIFT],
-						   argv[ARGUMENT_IN_FILE],
-						   argv[ARGUMENT_OUT_FILE]))
+		exit_value = encode_decode(cmd_type,
+								   argv[ARGUMENT_SHIFT],
+								   argv[ARGUMENT_IN_FILE],
+								   argv[ARGUMENT_OUT_FILE]);
+		if (CIPHER_STATUS_FAILURE(exit_value))
 		{
 			goto cleanup;
 		}
 		break;
 	default:
-		// If the program received only 1 argument and it's not test command
-		if (ARGUMENT_COMMAND == argc)
-		{
-			(void)fprintf(stderr, INVALID_TEST_PROMPT);
-			goto cleanup;
-		}
-		else if (ARGUMENT_MAX_ARGS == argc)
-		{
-			(void)fprintf(stderr, INVALID_COMMAND_PROMPT);
-			goto cleanup;
-		}
+		break; // fallthrough
 	}
 
-	exit_value = EXIT_SUCCESS;
+	exit_value = CIPHER_STATUS_SUCCESS;
 cleanup:
-	return exit_value;
+	return (int)exit_value;
 }
