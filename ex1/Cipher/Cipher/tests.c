@@ -5,39 +5,13 @@
 // Valid shift values used for the different tests
 typedef enum ShiftValues
 {
-	SHIFT_N_1 = -1,
 	SHIFT_N_3 = -3,
+	SHIFT_N_1 = -1,
 	SHIFT_2 = 2,
 	SHIFT_3,
 	SHIFT_29 = 29,
 
 } ShiftValues, * pShiftValues;
-
-/**
- * Checks if the given strings are cyclic or not
- * @param in - The original string
- * @param out - The manipulated (shifted) string
- * @param size - The size of the strings, both strings
- *				 should be OF THE SAME SIZE!
- */
-int is_non_cyclic(const char * in, 
-				  const char * out, 
-				  size_t size)
-{
-	size_t iter = 0;
-	int non_cyclic = 1;
-
-	for (iter = 0; iter < size; iter++)
-	{
-		if (0 > out[iter] - in[iter])
-		{
-			non_cyclic = 0;
-			goto cleanup;
-		}
-	}
-cleanup:
-	return non_cyclic;
-}
 
 // See full documentation in header file
 int test_encode_non_cyclic_lower_case_positive_k ()

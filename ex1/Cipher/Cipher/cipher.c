@@ -4,11 +4,18 @@
 // Letter count in the english alphabet
 #define LETTER_COUNT (26)
 
+// Function declarations
+
 /**
  * Shifts the given character within the English Alphabet
  * @param in - The character to shift
  * @param shift - The amount of characters to shift
  */
+char manipulate_character(const char in, const int shift);
+
+// Function definitions
+
+// See documentation at declaration
 char manipulate_character(const char in, const int shift)
 {
 	int new_char = in;

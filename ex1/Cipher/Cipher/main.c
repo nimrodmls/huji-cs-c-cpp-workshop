@@ -6,8 +6,10 @@
 #include "cipher.h"
 #include "tests.h"
 
+// Constants
 #define DECIMAL_BASE (10)
-#define READ_BUFFER_SIZE (1024)
+// 1024 characters + one for newline character
+#define READ_BUFFER_SIZE (1025)
 
 // File opening modes
 #define FILE_WRITE ("w")
@@ -25,6 +27,7 @@
 #define INVALID_TEST_PROMPT ("Usage: cipher test\n")
 #define INVALID_SHIFT_PROMPT ("The given shift value is invalid.\n")
 
+// Possible exit values of the program
 typedef enum CipherStatus
 {
 	CIPHER_STATUS_FAILED = EXIT_FAILURE,
@@ -32,6 +35,7 @@ typedef enum CipherStatus
 
 } CipherStatus, * pCipherStatus;
 
+// Checks whether a failure status has been reached
 #define CIPHER_STATUS_FAILURE(result) (result != CIPHER_STATUS_SUCCESS)
 
 // Valid command types
@@ -58,6 +62,77 @@ typedef enum ArgumentIndex
 
 } ArgumentIndex, *pArgumentIndex;
 
+// Function declarations
+
+/**
+ * Checks whether the given file handle has any error.
+ * @param file_handle - The handle to the file to check.
+ * @return Non-zero on error, 0 otherwise.
+ */
+int check_file_handle(FILE* file_handle);
+
+/**
+ * Converts a string to long (with validity checks)
+ * @param in - The string to convert
+ * @param out - The output converted value
+ */
+CipherStatus convert_str_to_long(const char* in, long* out);
+
+/**
+ * Executes encode/decode operation depending on the input command
+ * The function expects valid files as input.
+ * @param cmd - The Command to execute (decode/encode are acceptable)
+ * @param shift_count - The amount of shift to perform in cipher
+ * @param in_file - Handle of the file to encrypt
+ * @param out_file - Handle of the file to decrypt
+ * @return CIPHER_STATUS_SUCCESS on success, otherwise error
+ */
+void encode_decode_file(const Command cmd,
+						const int shift_count,
+						FILE* in_file,
+						FILE* out_file);
+
+/**
+ * Executes encode/decode operation depending on the input command
+ * @param cmd - The Command to execute (decode/encode are acceptable)
+ * @param shift - The amount of shift to perform in cipher
+ * @param in_file_path - Path to the file to encrypt
+ * @param out_file_path - Path to the file to decrypt
+ * @return CIPHER_STATUS_SUCCESS on success, otherwise error
+ */
+CipherStatus encode_decode(Command cmd,
+						   const char* shift,
+						   const char* in_file_path,
+						   const char* out_file_path);
+
+
+/**
+ * Parsing and converting the command line parameter for the command
+ * @param cmd - The string of the command
+ * @return The command, COMMAND_INVALID if no command has been found
+ */
+Command get_command_type(const char* cmd);
+
+/**
+ * Running all the test suites.
+ * @return if either one of the tests or more failed,
+ *		   non-zero is retured.
+ */
+int run_tests(void);
+
+/**
+ * Crossing the argument count the program recieived with the
+ * type of command, determines if they are correct and
+ * prints prompt to the user accordingly.
+ * @param argc - The argument count received by the program.
+ * @param cmd_type - The type of command received by the program.
+ * @return CIPHER_STATUS_SUCCESS on valid
+ */
+CipherStatus validate_parameters(int argc, Command cmd_type);
+
+// Function definitions
+
+// See documentation at declaration
 int check_file_handle(FILE* file_handle)
 {
 	int result = 0;
@@ -66,11 +141,7 @@ int check_file_handle(FILE* file_handle)
 	return result;
 }
 
-/**
- * Converts a string to long (with validity checks)
- * @param in - The string to convert
- * @param out - The output converted value
- */
+// See documentation at declaration
 CipherStatus convert_str_to_long(const char * in, long * out)
 {
 	CipherStatus status = CIPHER_STATUS_FAILED;
@@ -99,6 +170,7 @@ cleanup:
 	return status;
 }
 
+// See documentation at declaration
 void encode_decode_file(const Command cmd,
 						const int shift_count,
 						FILE* in_file,
@@ -133,18 +205,13 @@ void encode_decode_file(const Command cmd,
 			return;
 		}
 
+		// Going with the reading/writing as long as the files
+		// don't have any error out of the sudden
 	} while ((0 == check_file_handle(in_file)) &&
 			 (0 == check_file_handle(out_file)));
 }
 
-/**
- * Executes encode/decode operation depending on the input command
- * @param cmd - The Command to execute (decode/encode are acceptable)
- * @param shift - The amount of shift to perform in cipher
- * @param in_file_path - The file to encrypt
- * @param out_file_path - The file to decrypt
- * @return CIPHER_STATUS_SUCCESS on success, otherwise error
- */
+// See documentation at declaration
 CipherStatus encode_decode(Command cmd,
 				  const char * shift,
 				  const char * in_file_path,
@@ -187,11 +254,7 @@ cleanup:
 	return status;
 }
 
-/**
- * Parsing and converting the command line parameter for the command
- * @param cmd - The string of the command
- * @return The command, COMMAND_INVALID if no command has been found
- */
+// See documentation at declaration
 Command get_command_type(const char * cmd)
 {
 	Command out_cmd = COMMAND_INVALID;
@@ -219,9 +282,11 @@ lblCleanup:
 	return out_cmd;
 }
 
+// See documentation at declaration
 int run_tests(void)
 {
 	int test_val = 0;
+	// Mandatory tests
 	test_val += 
 		test_encode_non_cyclic_lower_case_positive_k();
 	test_val += 
@@ -245,6 +310,7 @@ int run_tests(void)
 	return !test_val;
 }
 
+// See documentation at declaration
 CipherStatus validate_parameters(int argc, Command cmd_type)
 {
 	CipherStatus status = CIPHER_STATUS_FAILED;
@@ -279,6 +345,27 @@ cleanup:
 	return status;
 }
 
+/** 
+ * The executable entrypoint.
+ * @param argc - Element count in argv.
+ * @param argv - The parameters, this program requires the following:
+ *				 > First parameter is either 
+				   'encode', 'decode' or 'test'
+ *					- 'test' launches the tests suite
+ *					- 'encode' launches the encode mode
+ *					- 'deocde' launches the decode mode
+ *				 > If either 'encode' or 'decode' were entered, the
+ *				   following 3 parameters are MANDATORY!
+ *				   'test' does not require them, and will 
+				   fail if any entered.
+ *					- Second parameter is the shift value 
+					  for the cipher.
+ *					- Third parameter is the input file to 
+					  encode/decode.
+ *					- Forth parameter is the output file for the 
+					  encoded/decoded input.
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE otherwise.
+ */
 int main(int argc, char * argv[])
 {
 	CipherStatus exit_value = CIPHER_STATUS_FAILED;
@@ -318,7 +405,7 @@ int main(int argc, char * argv[])
 		}
 		break;
 	default:
-		break; // fallthrough
+		break;
 	}
 
 	exit_value = CIPHER_STATUS_SUCCESS;
