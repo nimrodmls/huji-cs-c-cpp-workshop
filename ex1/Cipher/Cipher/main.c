@@ -85,7 +85,6 @@ CipherStatus convert_str_to_long(const char* in, long* out);
  * @param shift_count - The amount of shift to perform in cipher
  * @param in_file - Handle of the file to encrypt
  * @param out_file - Handle of the file to decrypt
- * @return CIPHER_STATUS_SUCCESS on success, otherwise error
  */
 void encode_decode_file(const Command cmd,
 						const int shift_count,
@@ -121,7 +120,7 @@ Command get_command_type(const char* cmd);
 int run_tests(void);
 
 /**
- * Crossing the argument count the program recieived with the
+ * Crossing the argument count the program received with the
  * type of command, determines if they are correct and
  * prints prompt to the user accordingly.
  * @param argc - The argument count received by the program.
