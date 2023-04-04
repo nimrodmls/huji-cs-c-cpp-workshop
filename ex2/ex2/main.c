@@ -9,13 +9,18 @@
 #define INPUT_BUFFER_SIZE_BYTES (61)
 #define READ_UNTIL_NEW_LINE ("%[^\n]")
 #define BUS_LINE_INPUT_FORMAT ("%20[^A-Z,\n],%d,%d")
+#define BUS_LINE_PRINT_FORMAT ("%s,%d,%d\n")
+
+#define MAX_DISTANCE (1000)
+#define MIN_DISTANCE (0)
+#define MAX_DURATION (100)
+#define MIN_DURATION (10)
 
 // Prompt strings for the user
 #define LINE_COUNT_PROMPT ("Enter number of lines. Then enter\n")
 #define LINE_INFO_PROMPT ("Enter line info. Then enter\n")
 #define USAGE_PROMPT ("USAGE: sort_lines [by_name/by_duration/by_distance/test]\n")
 #define ERROR_INVALID_LINE_COUNT ("ERROR: Expected positive integer. Try again.\n")
-#define ERROR_BUS_NAME_EXISTS ("ERROR: Bus name already exists!\n")
 #define ERROR_BUS_NAME_INVALID ("ERROR: Bus name should contain only digits and small chars\n")
 #define ERROR_DURATION_INVALID ("ERROR: Duration should be an integer between 10 and 100 (including)\n")
 #define ERROR_DISTANCE_INVALID ("ERROR: Distance should be an integer between 0 and 1000 (including)\n")
@@ -65,12 +70,14 @@ typedef enum BusLineParams
 
 // Macros
 //
-#define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != status)
+#define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != (status))
+
+#define BUS_LINES_LAST_ELEMENT(first, count) ((first) + (count) - 1)
 
 //
 #define FREE_MEMORY(ptr) \
 {						 \
-	if (NULL != ptr)	 \
+	if (NULL != (ptr))	 \
 	{					 \
 		free(ptr);		 \
 	}					 \
@@ -80,7 +87,8 @@ typedef enum BusLineParams
 
 ProgramStatus convert_str_to_long(const char* in, long* out);
 
-ProgramStatus get_user_input(char* prompt, char* user_input, int input_max_len);
+ProgramStatus get_user_input(
+	const char* prompt, char* user_input, int input_max_len);
 
 ProgramStatus bus_line_count_tester(
 	char* input, unsigned long* line_count);
@@ -129,7 +137,8 @@ cleanup:
 	return status;
 }
 
-ProgramStatus get_user_input(char* prompt, char* user_input, int input_max_len)
+ProgramStatus get_user_input(
+	const char* prompt, char* user_input, int input_max_len)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 
@@ -233,12 +242,18 @@ ProgramStatus parse_bus_line_input(char* input, BusLine* parsed)
 		(void)fprintf(stdout, ERROR_BUS_NAME_INVALID);
 		return status;
 	}
-	if ((BUS_LINE_PARAM_DISTANCE == params_read) || ((BUS_LINE_PARAM_DISTANCE < params_read) && (parsed->distance < 0 || parsed->distance > 1000)))
+	if ((BUS_LINE_PARAM_DISTANCE == params_read) || 
+		((BUS_LINE_PARAM_DISTANCE < params_read) && 
+			(parsed->distance < MIN_DISTANCE || 
+				parsed->distance > MAX_DISTANCE)))
 	{
 		(void)fprintf(stdout, ERROR_DISTANCE_INVALID);
 		return status;
 	}
-	if ((BUS_LINE_PARAM_DURATION == params_read) || ((BUS_LINE_PARAM_DURATION < params_read) && (parsed->duration < 10 || parsed->duration > 100)))
+	if ((BUS_LINE_PARAM_DURATION == params_read) || 
+		((BUS_LINE_PARAM_DURATION < params_read) && 
+			(parsed->duration < MIN_DURATION || 
+				parsed->duration > MAX_DURATION)))
 	{
 		(void)fprintf(stdout, ERROR_DURATION_INVALID);
 		return status;
@@ -308,13 +323,14 @@ ProgramStatus get_bus_lines_from_input(
 }
 
 // See documentation at declaration
-ProgramStatus get_bus_lines(BusLine** bus_lines)
+ProgramStatus get_bus_lines(
+	BusLine** bus_lines, unsigned long* count)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	BusLine* lines_local = NULL;
 	unsigned long line_count = 0;
 
-	if (NULL == bus_lines)
+	if (NULL == bus_lines || NULL == count)
 	{
 		goto cleanup;
 	}
@@ -338,6 +354,7 @@ ProgramStatus get_bus_lines(BusLine** bus_lines)
 	}
 
 	// Ownership transfer
+	*count = line_count;
 	*bus_lines = lines_local;
 	lines_local = NULL;
 
@@ -347,6 +364,52 @@ cleanup:
 	FREE_MEMORY(lines_local);
 
 	return status;
+}
+
+void print_bus_lines(BusLine* bus_lines, unsigned long count)
+{
+	BusLine* current_line = NULL;
+	unsigned long index = 0;
+
+	for (index = 0; index < count; index++)
+	{
+		current_line = bus_lines + index;
+		(void)fprintf(
+			stdout, 
+			BUS_LINE_PRINT_FORMAT, 
+			current_line->name, 
+			current_line->distance, 
+			current_line->duration);
+	}
+}
+
+void sort_bus_lines(
+	BusLine* lines, unsigned long count, CommandType cmd)
+{
+	switch(cmd)
+	{
+	case COMMAND_BY_DISTANCE:
+		quick_sort(
+			lines, 
+			BUS_LINES_LAST_ELEMENT(lines, count), 
+			DISTANCE);
+		break;
+	case COMMAND_BY_DURATION:
+		quick_sort(
+			lines, 
+			BUS_LINES_LAST_ELEMENT(lines, count), 
+			DURATION);
+		break;
+	case COMMAND_BY_NAME:
+		bubble_sort(
+			lines, 
+			BUS_LINES_LAST_ELEMENT(lines, count));
+		break;
+	case COMMAND_TEST:
+		break;
+	default:
+		return;
+	}
 }
 
 // See documentation at declaration
@@ -375,10 +438,32 @@ ProgramStatus resolve_command_type(char* in, pCommandType cmd)
 	{
 		out_cmd = COMMAND_TEST;
 	}
+	else
+	{
+		return PROGRAM_STATUS_FAILED;
+	}
 
 	*cmd = out_cmd;
 
 	return PROGRAM_STATUS_SUCCESS;
+}
+
+void create_fake_lines(BusLine** lines)
+{
+	BusLine* temp = NULL;
+	temp = (BusLine*)calloc(3, sizeof(BusLine));
+	memcpy(temp->name, "10", 1);
+	temp->distance = 10;
+	temp->duration = 10;
+	memcpy((temp + 1)->name, "20", 1);
+	(temp + 1)->distance = 20;
+	(temp + 1)->duration = 20;
+	memcpy((temp + 2)->name, "30", 1);
+	(temp + 2)->distance = 30;
+	(temp + 2)->duration = 30;
+
+	*lines = temp;
+	temp = NULL;
 }
 
 /**
@@ -389,9 +474,11 @@ int main (int argc, char *argv[])
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	CommandType cmd = COMMAND_INVALID;
 	BusLine* bus_lines = NULL;
+	unsigned long count = 0;
 
 	if (ARGUMENT_MAX_ARGS != argc)
 	{
+		(void)fprintf(stdout, USAGE_PROMPT);
 		goto cleanup;
 	}
 
@@ -402,7 +489,15 @@ int main (int argc, char *argv[])
 		goto cleanup;
 	}
 
-	get_bus_lines(&bus_lines);
+	status = get_bus_lines(&bus_lines, &count);
+	if (STATUS_FAILED(status))
+	{
+		goto cleanup;
+	}
+	//create_fake_lines(&bus_lines);
+	//count = 3;
+	sort_bus_lines(bus_lines, count, cmd);
+	print_bus_lines(bus_lines, count);
 
 cleanup:
 	FREE_MEMORY(bus_lines);
