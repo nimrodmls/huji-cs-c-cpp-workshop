@@ -93,10 +93,23 @@ ProgramStatus get_user_input(
 ProgramStatus bus_line_count_tester(
 	char* input, unsigned long* line_count);
 
+ProgramStatus get_bus_line_count(unsigned long* line_count);
+
+ProgramStatus parse_bus_line_input(char* input, BusLine* parsed);
+
+ProgramStatus bus_line_input_tester(
+	char* input, BusLine* all_lines, unsigned long current_line);
+
 ProgramStatus get_bus_lines_from_input(
 	unsigned long line_count, BusLine* bus_lines);
 
-ProgramStatus get_bus_lines(BusLine** bus_lines);
+ProgramStatus get_bus_lines(
+	BusLine** bus_lines, unsigned long* count);
+
+void print_bus_lines(BusLine* bus_lines, unsigned long count);
+
+void sort_bus_lines(
+	BusLine* lines, unsigned long count, CommandType cmd);
 
 /**
  * Resolving the command type from the given string.
@@ -106,7 +119,7 @@ ProgramStatus get_bus_lines(BusLine** bus_lines);
  */
 ProgramStatus resolve_command_type(char* in, pCommandType cmd);
 
-// Fuction definitions
+// Function definitions
 
 // See documentation at declaration
 ProgramStatus convert_str_to_long(const char* in, long* out)
@@ -137,6 +150,7 @@ cleanup:
 	return status;
 }
 
+// See documentation at declaration
 ProgramStatus get_user_input(
 	const char* prompt, char* user_input, int input_max_len)
 {
@@ -195,6 +209,7 @@ ProgramStatus bus_line_count_tester(
 	return status;
 }
 
+// See documentation at declaration
 ProgramStatus get_bus_line_count(unsigned long* line_count)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
@@ -208,7 +223,9 @@ ProgramStatus get_bus_line_count(unsigned long* line_count)
 	do
 	{
 		status = get_user_input(
-			LINE_COUNT_PROMPT, user_input, sizeof(user_input));
+			LINE_COUNT_PROMPT, 
+			user_input, 
+			sizeof(user_input));
 		if (STATUS_FAILED(status))
 		{
 			return status;
@@ -221,6 +238,7 @@ ProgramStatus get_bus_line_count(unsigned long* line_count)
 	return status;
 }
 
+// See documentation at declaration
 ProgramStatus parse_bus_line_input(char* input, BusLine* parsed)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
@@ -263,6 +281,7 @@ ProgramStatus parse_bus_line_input(char* input, BusLine* parsed)
 	return status;
 }
 
+// See documentation at declaration
 ProgramStatus bus_line_input_tester(
 	char* input, BusLine* all_lines, unsigned long current_line
 )
@@ -366,6 +385,7 @@ cleanup:
 	return status;
 }
 
+// See documentation at declaration
 void print_bus_lines(BusLine* bus_lines, unsigned long count)
 {
 	BusLine* current_line = NULL;
@@ -383,6 +403,7 @@ void print_bus_lines(BusLine* bus_lines, unsigned long count)
 	}
 }
 
+// See documentation at declaration
 void sort_bus_lines(
 	BusLine* lines, unsigned long count, CommandType cmd)
 {
@@ -404,8 +425,6 @@ void sort_bus_lines(
 		bubble_sort(
 			lines, 
 			BUS_LINES_LAST_ELEMENT(lines, count));
-		break;
-	case COMMAND_TEST:
 		break;
 	default:
 		return;
@@ -446,6 +465,29 @@ ProgramStatus resolve_command_type(char* in, pCommandType cmd)
 	*cmd = out_cmd;
 
 	return PROGRAM_STATUS_SUCCESS;
+}
+
+ProgramStatus execute_command(CommandType cmd)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	BusLine* lines = NULL;
+	unsigned long count = 0;
+
+	switch(cmd)
+	{
+	case COMMAND_BY_DURATION:
+		// fallthrough
+	case COMMAND_BY_NAME:
+		// fallthrough
+	case COMMAND_BY_DISTANCE:
+		status = get_bus_lines(&lines, &count);
+		if (STATUS_FAILED(status))
+		{
+			return status;
+		}
+	}
+
+	return status;
 }
 
 void create_fake_lines(BusLine** lines)
