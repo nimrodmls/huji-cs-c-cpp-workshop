@@ -3,6 +3,15 @@
 
 #include "sort_bus_lines.h"
 
+typedef enum TestResult
+{
+    TEST_RESULT_FAILURE = 0,
+    TEST_RESULT_SUCCESS,
+
+} TestResult;
+
+#define TEST_FAILED(result) (TEST_RESULT_SUCCESS != (result))
+
 /**
  * TODO add documentation
  */

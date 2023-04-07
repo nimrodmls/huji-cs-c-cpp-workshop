@@ -72,8 +72,8 @@ void quick_sort(BusLine* start, BusLine* end, SortType sort_type)
 
 BusLine* partition(BusLine* start, BusLine* end, SortType sort_type)
 {
-	unsigned long line_count = BUS_LIST_SIZE(start, end);
-	unsigned long index = 0;
+	int line_count = BUS_LIST_SIZE(start, end);
+	int index = 0;
 	long smaller_index = -1;
 	BusLine* pivot_line = end;
 	BusLine* current_line = NULL;

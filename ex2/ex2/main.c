@@ -24,6 +24,12 @@
 #define ERROR_BUS_NAME_INVALID ("ERROR: Bus name should contain only digits and small chars\n")
 #define ERROR_DURATION_INVALID ("ERROR: Duration should be an integer between 10 and 100 (including)\n")
 #define ERROR_DISTANCE_INVALID ("ERROR: Distance should be an integer between 0 and 1000 (including)\n")
+#define TEST_DESCRIPTION_DISTANCE_SORT ("Distance Sort Test")
+#define TEST_DESCRIPTION_DISTANCE_EQ ("Distance Equality Test")
+#define TEST_DESCRIPTION_DURATION_SORT ("Duration Sort Test")
+#define TEST_DESCRIPTION_DURATION_EQ ("Duration Equality Test")
+#define TEST_DESCRIPTION_NAME_SORT ("Name Sort Test")
+#define TEST_DESCRIPTION_NAME_EQ ("Name Equality Test")
 
 // Constants for command type string identifier
 #define COMMAND_BY_DURATION_STR ("by_duration")
@@ -68,6 +74,17 @@ typedef enum BusLineParams
 
 } BusLineParams, *pBusLineParams;
 
+typedef enum TestId
+{
+	TEST_ID_DISTANCE_SORT = 1,
+	TEST_ID_DISTANCE_EQUAL,
+	TEST_ID_DURATION_SORT,
+	TEST_ID_DURATION_EQUAL,
+	TEST_ID_NAME_SORT,
+	TEST_ID_NAME_EQUAL
+
+} TestId;
+
 // Macros
 //
 #define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != (status))
@@ -75,12 +92,30 @@ typedef enum BusLineParams
 #define BUS_LINES_LAST_ELEMENT(first, count) ((first) + (count) - 1)
 
 //
-#define FREE_MEMORY(ptr) \
-{						 \
-	if (NULL != (ptr))	 \
-	{					 \
-		free(ptr);		 \
-	}					 \
+#define FREE_MEMORY(ptr)	\
+{							\
+	if (NULL != (ptr))		\
+	{						\
+		free(ptr);			\
+		(ptr) = NULL;			\
+	}						\
+}
+
+#define TEST_SUCCESS_PROMPT(num, desc) \
+	((void)fprintf(stdout, "TEST %d PASSED: %s\n", (num), (desc)))
+#define TEST_FAILED_PROMPT(num, desc) \
+	((void)fprintf(stdout, "TEST %d FAILED: %s\n", (num), (desc)))
+
+#define RUN_TEST(test, num, desc)			\
+{											\
+	if (TEST_FAILED((test)))				\
+	{										\
+		TEST_FAILED_PROMPT((num), (desc));	\
+	}										\
+	else									\
+	{										\
+		TEST_SUCCESS_PROMPT((num), (desc));	\
+	}										\
 }
  
 // Function declarations
@@ -467,11 +502,97 @@ ProgramStatus resolve_command_type(char* in, pCommandType cmd)
 	return PROGRAM_STATUS_SUCCESS;
 }
 
+
+void test_distance(BusLine* lines, BusLine* copy, unsigned long count)
+{
+	quick_sort(copy, BUS_LINES_LAST_ELEMENT(copy, count), DISTANCE);
+	RUN_TEST(
+		is_sorted_by_distance(
+			copy, BUS_LINES_LAST_ELEMENT(copy, count)),
+		TEST_ID_DISTANCE_SORT,
+		TEST_DESCRIPTION_DISTANCE_SORT);
+
+	RUN_TEST(is_equal(
+		copy,
+		BUS_LINES_LAST_ELEMENT(copy, count),
+		lines,
+		BUS_LINES_LAST_ELEMENT(lines, count)),
+		TEST_ID_DISTANCE_EQUAL,
+		TEST_DESCRIPTION_DISTANCE_EQ);
+}
+
+void test_duration(BusLine* lines, BusLine* copy, unsigned long count)
+{
+	quick_sort(copy, BUS_LINES_LAST_ELEMENT(copy, count), DURATION);
+	RUN_TEST(
+		is_sorted_by_duration(
+			copy, BUS_LINES_LAST_ELEMENT(copy, count)),
+		TEST_ID_DURATION_SORT,
+		TEST_DESCRIPTION_DURATION_SORT);
+
+	RUN_TEST(is_equal(
+		copy,
+		BUS_LINES_LAST_ELEMENT(copy, count),
+		lines,
+		BUS_LINES_LAST_ELEMENT(lines, count)),
+		TEST_ID_DURATION_EQUAL,
+		TEST_DESCRIPTION_DURATION_EQ);
+}
+
+void test_name(BusLine* lines, BusLine* copy, unsigned long count)
+{
+	bubble_sort(copy, BUS_LINES_LAST_ELEMENT(copy, count));
+	RUN_TEST(
+		is_sorted_by_name(
+			copy, BUS_LINES_LAST_ELEMENT(copy, count)),
+		TEST_ID_NAME_SORT,
+		TEST_DESCRIPTION_NAME_SORT);
+
+	RUN_TEST(is_equal(
+		copy,
+		BUS_LINES_LAST_ELEMENT(copy, count),
+		lines,
+		BUS_LINES_LAST_ELEMENT(lines, count)),
+		TEST_ID_NAME_EQUAL,
+		TEST_DESCRIPTION_NAME_EQ);
+}
+
+ProgramStatus run_tests(BusLine* lines, unsigned long count)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	unsigned long results = 0;
+	BusLine* copy = NULL;
+
+	// Saving the original, before altering via sorting
+	copy = (BusLine*)calloc(count, sizeof(*lines));
+	if (NULL == copy)
+	{
+		goto cleanup;
+	}
+	(void)memcpy(copy, lines, sizeof(*lines) * count);
+
+	test_distance(lines, copy, count);
+	test_duration(lines, copy, count);
+	test_name(lines, copy, count);
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+	FREE_MEMORY(copy);
+	return status;
+}
+
 ProgramStatus execute_command(CommandType cmd)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	BusLine* lines = NULL;
 	unsigned long count = 0;
+
+	status = get_bus_lines(&lines, &count);
+	if (STATUS_FAILED(status))
+	{
+		goto cleanup;
+	}
 
 	switch(cmd)
 	{
@@ -480,13 +601,22 @@ ProgramStatus execute_command(CommandType cmd)
 	case COMMAND_BY_NAME:
 		// fallthrough
 	case COMMAND_BY_DISTANCE:
-		status = get_bus_lines(&lines, &count);
+		sort_bus_lines(lines, count, cmd);
+		print_bus_lines(lines, count);
+		break;
+	case COMMAND_TEST:
+		status = run_tests(lines, count);
 		if (STATUS_FAILED(status))
 		{
-			return status;
+			goto cleanup;
 		}
+		break;
 	}
 
+	status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+	FREE_MEMORY(lines);
 	return status;
 }
 
@@ -514,41 +644,29 @@ void create_fake_lines(BusLine** lines)
 int main (int argc, char *argv[])
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
-	CommandType cmd = COMMAND_INVALID;
+	CommandType cmd = COMMAND_INVALID;	
 	BusLine* bus_lines = NULL;
 	unsigned long count = 0;
 
 	if (ARGUMENT_MAX_ARGS != argc)
 	{
 		(void)fprintf(stdout, USAGE_PROMPT);
-		goto cleanup;
+		return status;
 	}
 
 	status = resolve_command_type(argv[ARGUMENT_COMMAND], &cmd);
 	if (STATUS_FAILED(status))
 	{
 		(void)fprintf(stdout, USAGE_PROMPT);
-		goto cleanup;
+		return status;
 	}
 
-	status = get_bus_lines(&bus_lines, &count);
+	status = execute_command(cmd);
 	if (STATUS_FAILED(status))
 	{
-		goto cleanup;
-	}
-	//create_fake_lines(&bus_lines);
-	//count = 3;
-	sort_bus_lines(bus_lines, count, cmd);
-	print_bus_lines(bus_lines, count);
-
-cleanup:
-	FREE_MEMORY(bus_lines);
-
-	// TODO: REMOVE!
-	if (STATUS_FAILED(status))
-	{
-		(void)fprintf(stdout, "ERROR IN PROGRAM?!");
+		return status;
 	}
 
+	status = PROGRAM_STATUS_SUCCESS;
 	return status;
 }
