@@ -89,8 +89,6 @@ typedef enum TestId
 //
 #define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != (status))
 
-#define BUS_LINES_LAST_ELEMENT(first, count) ((first) + (count) - 1)
-
 //
 #define FREE_MEMORY(ptr)	\
 {							\
@@ -336,7 +334,10 @@ ProgramStatus bus_line_input_tester(
 		return status;
 	}
 
-	memcpy(all_lines + current_line, &local_line_info, sizeof(local_line_info));
+	(void)memcpy(
+		all_lines + current_line, 
+		&local_line_info, 
+		sizeof(local_line_info));
 
 	status = PROGRAM_STATUS_SUCCESS;
 	return status;
@@ -618,24 +619,6 @@ ProgramStatus execute_command(CommandType cmd)
 cleanup:
 	FREE_MEMORY(lines);
 	return status;
-}
-
-void create_fake_lines(BusLine** lines)
-{
-	BusLine* temp = NULL;
-	temp = (BusLine*)calloc(3, sizeof(BusLine));
-	memcpy(temp->name, "10", 1);
-	temp->distance = 10;
-	temp->duration = 10;
-	memcpy((temp + 1)->name, "20", 1);
-	(temp + 1)->distance = 20;
-	(temp + 1)->duration = 20;
-	memcpy((temp + 2)->name, "30", 1);
-	(temp + 2)->distance = 30;
-	(temp + 2)->duration = 30;
-
-	*lines = temp;
-	temp = NULL;
 }
 
 /**

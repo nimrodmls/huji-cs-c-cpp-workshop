@@ -2,9 +2,6 @@
 
 #include "sort_bus_lines.h"
 
-#define BUS_FROM_INDEX(start, index) ((BusLine *)(start + index))
-#define BUS_LIST_SIZE(start, end) (end - start)
-
 int get_bus_line_data(BusLine * bus_line, SortType data_type)
 {
 	switch (data_type)
@@ -72,8 +69,8 @@ void quick_sort(BusLine* start, BusLine* end, SortType sort_type)
 
 BusLine* partition(BusLine* start, BusLine* end, SortType sort_type)
 {
-	int line_count = BUS_LIST_SIZE(start, end);
-	int index = 0;
+	size_t line_count = BUS_LIST_SIZE(start, end);
+	size_t index = 0;
 	long smaller_index = -1;
 	BusLine* pivot_line = end;
 	BusLine* current_line = NULL;
