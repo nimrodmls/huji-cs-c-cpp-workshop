@@ -225,14 +225,14 @@ ProgramStatus bus_line_count_tester(
 	status = convert_str_to_long(input, &count);
 	if (STATUS_FAILED(status))
 	{
-		(void)fprintf(stdin, ERROR_INVALID_LINE_COUNT);
+		(void)fprintf(stdout, ERROR_INVALID_LINE_COUNT);
 		return status;
 	}
 
 	if (count <= 0)
 	{
-		(void)fprintf(stdin, ERROR_INVALID_LINE_COUNT);
-		return status;
+		(void)fprintf(stdout, ERROR_INVALID_LINE_COUNT);
+		return PROGRAM_STATUS_FAILED;
 	}
 
 	*line_count = (unsigned long)count;
@@ -399,6 +399,7 @@ ProgramStatus get_bus_lines(
 	lines_local = (BusLine *)calloc(line_count, sizeof(*lines_local));
 	if (NULL == lines_local)
 	{
+		status = PROGRAM_STATUS_FAILED;
 		goto cleanup;
 	}
 
@@ -568,6 +569,7 @@ ProgramStatus run_tests(BusLine* lines, unsigned long count)
 	copy = (BusLine*)calloc(count, sizeof(*lines));
 	if (NULL == copy)
 	{
+		status = PROGRAM_STATUS_FAILED;
 		goto cleanup;
 	}
 	(void)memcpy(copy, lines, sizeof(*lines) * count);

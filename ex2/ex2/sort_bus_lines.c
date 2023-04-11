@@ -26,8 +26,8 @@ void swap_lines(BusLine* line1, BusLine* line2)
 
 void bubble_sort(BusLine* start, BusLine* end)
 {
-	unsigned long outer_index = 0;
-	unsigned long inner_index = 0;
+	size_t outer_index = 0;
+	size_t inner_index = 0;
 	int compare_result = 0;
 
 	for (outer_index = 0; 
@@ -41,7 +41,7 @@ void bubble_sort(BusLine* start, BusLine* end)
 			compare_result = strcmp(
 					BUS_FROM_INDEX(start, inner_index)->name, 
 					BUS_FROM_INDEX(start, inner_index + 1)->name);
-			// The ASCII value of (inner_index + 1) is greater,
+			// The ASCII value of inner_index is greater,
 			// (means that it is further down the English Alphabet)
 			// so we need to swap
 			if (0 < compare_result)
