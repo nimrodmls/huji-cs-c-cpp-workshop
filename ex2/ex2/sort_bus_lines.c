@@ -29,13 +29,14 @@ void bubble_sort(BusLine* start, BusLine* end)
 	size_t outer_index = 0;
 	size_t inner_index = 0;
 	int compare_result = 0;
+	size_t line_count = BUS_LIST_SIZE(start, end);
 
 	for (outer_index = 0; 
-		 outer_index < BUS_LIST_SIZE(start, end); 
+		 outer_index < line_count;
 		 outer_index++)
 	{
 		for (inner_index = 0;
-			 inner_index < BUS_LIST_SIZE(start, end);
+			 inner_index < line_count;
 			 inner_index++)
 		{
 			compare_result = strcmp(

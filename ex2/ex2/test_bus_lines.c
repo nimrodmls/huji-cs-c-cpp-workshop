@@ -63,7 +63,7 @@ int is_equal(
 	int compare_result = 0;
 
 	// The sizes of both arrays are different, no point to continue
-	if (line_count != BUS_LIST_SIZE(start_original, end_original))
+	if (line_count != (size_t)BUS_LIST_SIZE(start_original, end_original))
 	{
 		return TEST_RESULT_FAILURE;
 	}
