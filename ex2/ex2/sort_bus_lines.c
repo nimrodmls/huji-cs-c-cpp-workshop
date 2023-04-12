@@ -2,7 +2,26 @@
 
 #include "sort_bus_lines.h"
 
-int get_bus_line_data(BusLine * bus_line, SortType data_type)
+// Internal function declarations
+
+/**
+ * Swapping 2 bus lines in the memory.
+ * @param line1/line2 - The lines to swap.
+ */
+void swap_lines(BusLine* line1, BusLine* line2);
+
+// Function definitions
+
+// See documentation at declaration
+void swap_lines(BusLine* line1, BusLine* line2)
+{
+	BusLine temp = *line1;
+	memcpy(line1, line2, sizeof(*line1));
+	memcpy(line2, &temp, sizeof(*line2));
+}
+
+// See documentation at header file
+int get_bus_line_data(BusLine* bus_line, SortType data_type)
 {
 	switch (data_type)
 	{
@@ -17,19 +36,18 @@ int get_bus_line_data(BusLine * bus_line, SortType data_type)
 	}
 }
 
-void swap_lines(BusLine* line1, BusLine* line2)
-{
-	BusLine temp = *line1;
-	memcpy(line1, line2, sizeof(*line1));
-	memcpy(line2, &temp, sizeof(*line2));
-}
-
+// See documentation at header file
 void bubble_sort(BusLine* start, BusLine* end)
 {
+	size_t line_count = BUS_LIST_SIZE(start, end);
 	size_t outer_index = 0;
 	size_t inner_index = 0;
 	int compare_result = 0;
-	size_t line_count = BUS_LIST_SIZE(start, end);
+
+	if ((NULL == start) || (NULL == end))
+	{
+		return;
+	}
 
 	for (outer_index = 0; 
 		 outer_index < line_count;
@@ -54,8 +72,14 @@ void bubble_sort(BusLine* start, BusLine* end)
 	}
 }
 
+// See documentation at header file
 void quick_sort(BusLine* start, BusLine* end, SortType sort_type)
 {
+	if ((NULL == start) || (NULL == end))
+	{
+		return;
+	}
+
 	// Checking if we reached the end
 	if (end < start)
 	{
@@ -63,11 +87,17 @@ void quick_sort(BusLine* start, BusLine* end, SortType sort_type)
 	}
 
 	BusLine* part = partition(start, end, sort_type);
+	if (NULL == part)
+	{
+		return;
+	}
+
 	// Sorting both ends of the partition
 	quick_sort(start, part - 1, sort_type);
 	quick_sort(part + 1, end, sort_type);
 }
 
+// See documentation at header file
 BusLine* partition(BusLine* start, BusLine* end, SortType sort_type)
 {
 	size_t line_count = BUS_LIST_SIZE(start, end);
@@ -76,6 +106,11 @@ BusLine* partition(BusLine* start, BusLine* end, SortType sort_type)
 	BusLine* pivot_line = end;
 	BusLine* current_line = NULL;
 	int pivot_line_data = 0;
+
+	if ((NULL == start) || (NULL == end))
+	{
+		return NULL;
+	}
 
 	// If the line count is 0 it means it's a single-item "array"
 	// so it's obviously sorted already

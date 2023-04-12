@@ -20,11 +20,16 @@
 // Prompt strings for the user
 #define LINE_COUNT_PROMPT ("Enter number of lines. Then enter\n")
 #define LINE_INFO_PROMPT ("Enter line info. Then enter\n")
-#define USAGE_PROMPT ("USAGE: sort_lines [by_name/by_duration/by_distance/test]\n")
-#define ERROR_INVALID_LINE_COUNT ("ERROR: Expected positive integer. Try again.\n")
-#define ERROR_BUS_NAME_INVALID ("ERROR: Bus name should contain only digits and small chars\n")
-#define ERROR_DURATION_INVALID ("ERROR: Duration should be integer 10-100 (including)\n")
-#define ERROR_DISTANCE_INVALID ("ERROR: Distance should be integer 0-1000 (including)\n")
+#define USAGE_PROMPT \
+	("USAGE: sort_lines [by_name/by_duration/by_distance/test]\n")
+#define ERROR_INVALID_LINE_COUNT \
+	("ERROR: Expected positive integer. Try again.\n")
+#define ERROR_BUS_NAME_INVALID \
+	("ERROR: Bus name should contain only digits and small chars\n")
+#define ERROR_DURATION_INVALID \
+	("ERROR: Duration should be integer 10-100 (including)\n")
+#define ERROR_DISTANCE_INVALID \
+	("ERROR: Distance should be integer 0-1000 (including)\n")
 #define TEST_DESCRIPTION_DISTANCE_SORT ("Distance Sort Test")
 #define TEST_DESCRIPTION_DISTANCE_EQ ("Distance Equality Test")
 #define TEST_DESCRIPTION_DURATION_SORT ("Duration Sort Test")
@@ -38,9 +43,11 @@
 #define COMMAND_BY_NAME_STR ("by_name")
 #define COMMAND_TEST_STR ("test")
 
-// Enums
+// Typedefs
 
-// Exit statuses for error indication
+/**
+ * Exit statuses for error indication
+ */
 typedef enum ProgramStatus
 {
 	PROGRAM_STATUS_SUCCESS = EXIT_SUCCESS,
@@ -48,7 +55,9 @@ typedef enum ProgramStatus
 
 } ProgramStatus, *pProgramStatus;
 
-// Command Line argument indices
+/**
+ * Command Line argument indices
+ */
 typedef enum Arguments
 {
 	ARGUMENT_COMMAND = 1,
@@ -56,7 +65,9 @@ typedef enum Arguments
 
 } Arguments;
 
-// Types of commands received in the command line
+/**
+ * Types of commands received in the command line
+ */
 typedef enum CommandType
 {
 	COMMAND_INVALID = 0,
@@ -67,7 +78,9 @@ typedef enum CommandType
 
 } CommandType;
 
-// Order of parameters received for a single bus line
+/**
+ * Order of parameters received for a single bus line
+ */
 typedef enum BusLineParams
 {
 	BUS_LINE_PARAM_NAME = 0,
@@ -77,7 +90,9 @@ typedef enum BusLineParams
 
 } BusLineParams;
 
-// Numeric identifier for each test
+/**
+ * Numeric identifier for each test
+ */
 typedef enum TestId
 {
 	TEST_ID_DISTANCE_SORT = 1,
@@ -130,7 +145,7 @@ typedef enum TestId
  * @param in - The integer as a string.
  * @param out - Dereferenced for the output integer.
  * @return success/failure status.
-*/
+ */
 ProgramStatus convert_str_to_long(const char* in, long* out);
 
 /**
@@ -139,7 +154,7 @@ ProgramStatus convert_str_to_long(const char* in, long* out);
  * @param user_input - Block of memory for the user input.
  * @param input_max_len - The length of user input / max to receive.
  * @return success/failure status.
-*/
+ */
 ProgramStatus get_user_input(
 	const char* prompt, char* user_input, int input_max_len);
 
@@ -149,7 +164,7 @@ ProgramStatus get_user_input(
  * @param input - The string received from the user.
  * @param line_count - Dereferenced for the output count, on success.
  * @return success/failure status.
-*/
+ */
 ProgramStatus bus_line_count_tester(
 	char* input, unsigned long* line_count);
 
@@ -157,7 +172,7 @@ ProgramStatus bus_line_count_tester(
  * Receives the amount of lines from the user.
  * @param line_count - Deferenced for the line count from the user.
  * @return success/failure status.
-*/
+ */
 ProgramStatus get_bus_line_count(unsigned long* line_count);
 
 /**
@@ -166,7 +181,7 @@ ProgramStatus get_bus_line_count(unsigned long* line_count);
  * @param input - The string received from the user.
  * @param parsed - The parsed bus line to recieve into, on success.
  * @return success/failure status.
-*/
+ */
 ProgramStatus parse_bus_line_input(char* input, BusLine* parsed);
 
 /**
@@ -176,7 +191,7 @@ ProgramStatus parse_bus_line_input(char* input, BusLine* parsed);
  * @param all_lines - The list of lines to copy to, on success.
  * @param current_line - The current line index in the list.
  * @return success/failure status.
-*/
+ */
 ProgramStatus bus_line_input_tester(
 	char* input, BusLine* all_lines, unsigned long current_line);
 
@@ -189,7 +204,7 @@ ProgramStatus bus_line_input_tester(
  *					  The list will be at least as long as
  *					  line_count.
  * @return success/failure status.
-*/
+ */
 ProgramStatus get_bus_lines_from_input(
 	unsigned long line_count, BusLine* bus_lines);
 
@@ -198,7 +213,7 @@ ProgramStatus get_bus_lines_from_input(
  * @param bus_lines - Dereferenced for the ptr to the line list.
  * @param count - The amount of lines in bus_lines list.
  * @return success/failure status.
-*/
+ */
 ProgramStatus get_bus_lines(
 	BusLine** bus_lines, unsigned long* count);
 
@@ -206,7 +221,7 @@ ProgramStatus get_bus_lines(
  * Printing the given bus line list.
  * @param bus_lines - The list of lines to print.
  * @param count - The amount of lines in bus_lines.
-*/
+ */
 void print_bus_lines(BusLine* bus_lines, unsigned long count);
 
 /**
@@ -216,7 +231,7 @@ void print_bus_lines(BusLine* bus_lines, unsigned long count);
  * @param lines - The list of lines to sort.
  * @param count - The amount of lines in lines.
  * @param cmd - The sort / command type.
-*/
+ */
 void sort_bus_lines(
 	BusLine* lines, unsigned long count, CommandType cmd);
 
@@ -233,7 +248,7 @@ ProgramStatus resolve_command_type(char* in, CommandType* cmd);
  * @param lines - The list of lines to test.
  * @param copy - The exact original copy of the given lines list.
  * @param count - Amount of lines in BOTH lines/copy.
-*/
+ */
 void test_distance(BusLine* lines, BusLine* copy, unsigned long count);
 
 /**
@@ -241,7 +256,7 @@ void test_distance(BusLine* lines, BusLine* copy, unsigned long count);
  * @param lines - The list of lines to test.
  * @param copy - The exact original copy of the given lines list.
  * @param count - Amount of lines in BOTH lines/copy.
-*/
+ */
 void test_duration(BusLine* lines, BusLine* copy, unsigned long count);
 
 /**
@@ -249,20 +264,20 @@ void test_duration(BusLine* lines, BusLine* copy, unsigned long count);
  * @param lines - The list of lines to test.
  * @param copy - The exact original copy of the given lines list.
  * @param count - Amount of lines in BOTH lines/copy.
-*/
+ */
 void test_name(BusLine* lines, BusLine* copy, unsigned long count);
 
 /**
  * Running all the test suites.
  * @param lines - The list of lines to test.
  * @param count - Amount of lines in the list.
-*/
+ */
 ProgramStatus run_tests(BusLine* lines, unsigned long count);
 
 /**
  * Running the given command.
  * @param cmd - The requested command to run.
-*/
+ */
 ProgramStatus execute_command(CommandType cmd);
 
 // Function definitions

@@ -1,6 +1,23 @@
 #include "test_bus_lines.h"
 
-int is_monotonically_increasing(BusLine* start, BusLine* end, SortType field)
+// Internal function declarations
+
+/**
+ * Checking if the given bus list is monotonically increasing
+ * at the requested field type (duration/distance).
+ * @param start - Ptr to the start of the bus list.
+ * @param end - Ptr to the end of the bus list.
+ * @param field - The data field to check in the bus line.
+ * @return TestResult - Whether test passed or not.
+ */
+TestResult is_monotonically_increasing(
+	BusLine* start, BusLine* end, SortType field);
+
+// Function definitions
+
+// See documentation at declaration
+TestResult is_monotonically_increasing(
+	BusLine* start, BusLine* end, SortType field)
 {
 	size_t line_count = BUS_LIST_SIZE(start, end);
 	size_t index = 0;
@@ -21,16 +38,19 @@ int is_monotonically_increasing(BusLine* start, BusLine* end, SortType field)
 	return TEST_RESULT_SUCCESS;
 }
 
+// See documentation at header file
 int is_sorted_by_distance(BusLine* start, BusLine* end)
 {
 	return is_monotonically_increasing(start, end, DISTANCE);
 }
 
+// See documentation at header file
 int is_sorted_by_duration(BusLine* start, BusLine* end)
 {
 	return is_monotonically_increasing(start, end, DURATION);
 }
 
+// See documentation at header file
 int is_sorted_by_name(BusLine* start, BusLine* end)
 {
 	size_t line_count = BUS_LIST_SIZE(start, end);
@@ -51,6 +71,7 @@ int is_sorted_by_name(BusLine* start, BusLine* end)
 	return TEST_RESULT_SUCCESS;
 }
 
+// See documentation at header file
 int is_equal(
 	BusLine* start_sorted, 
 	BusLine* end_sorted, 
