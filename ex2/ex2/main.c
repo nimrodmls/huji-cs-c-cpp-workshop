@@ -11,6 +11,7 @@
 #define READ_UNTIL_NEW_LINE ("%[^\n]")
 #define BUS_LINE_INPUT_FORMAT ("%20[^A-Z,\n],%d,%d")
 #define BUS_LINE_PRINT_FORMAT ("%s,%d,%d\n")
+#define INPUT_FORMAT ("%s")
 
 #define MAX_DISTANCE (1000)
 #define MIN_DISTANCE (0)
@@ -322,7 +323,7 @@ ProgramStatus get_user_input(
 		return status;
 	}
 
-	(void)fprintf(stdout, prompt);
+	(void)fprintf(stdout, INPUT_FORMAT, prompt);
 	if (NULL == fgets(user_input, input_max_len, stdin))
 	{
 		return status;
