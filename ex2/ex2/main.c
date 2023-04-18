@@ -9,7 +9,7 @@
 #define DECIMAL_BASE (10)
 #define INPUT_BUFFER_SIZE_BYTES (61)
 #define READ_UNTIL_NEW_LINE ("%[^\n]")
-#define BUS_LINE_INPUT_FORMAT ("%20[^A-Z,\n],%d,%d")
+#define BUS_LINE_INPUT_FORMAT ("%20[0-9a-z],%d,%d")
 #define BUS_LINE_PRINT_FORMAT ("%s,%d,%d\n")
 #define INPUT_FORMAT ("%s")
 
