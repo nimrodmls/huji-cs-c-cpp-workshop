@@ -11,10 +11,33 @@
 
 
 
-/**
- * insert Structs here
- */
+// Typedefs
 
+/**
+ * MarkovChain object struct
+ */
+typedef struct MarkovChain
+{
+	LinkedList database;
+
+} MarkovChain;
+
+// Forward declaration
+typedef struct MarkovNodeFrequency MarkovNodeFrequency;
+
+typedef struct MarkovNode
+{
+	char* data;
+	MarkovNodeFrequency* frequencies_list;
+
+} MarkovNode;
+
+typedef struct MarkovNodeFrequency
+{
+	MarkovNode* markov_node;
+	unsigned long frequency;
+
+} MarkovNodeFrequency;
 
 /**
 * If data_ptr in markov_chain, return it's node. Otherwise, create new
