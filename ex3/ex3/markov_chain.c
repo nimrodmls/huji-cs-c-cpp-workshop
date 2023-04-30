@@ -3,6 +3,7 @@
 
 #include "markov_chain.h"
 
+// See documentation at header file
 void create_markov_chain(MarkovChain** chain)
 {
 	MarkovChain* new_chain = NULL;
@@ -34,9 +35,8 @@ void create_markov_chain(MarkovChain** chain)
 cleanup:
 	FREE_MEMORY(inner_list);
 	FREE_MEMORY(new_chain);
-
-	return new_chain;
 }
+
 // See documentation at header file
 Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
 {
@@ -100,13 +100,89 @@ Node* get_node_from_database(
 bool add_node_to_frequencies_list(
 	MarkovNode* first_node, MarkovNode* second_node)
 {
-	
+	bool status = false;
+	unsigned int found_entry = 0;
+	MarkovNodeFrequency* new_freq_list = NULL;
+
+	assert(NULL != first_node);
+	assert(NULL != second_node);
+
+	// First we look up the second node in the frequencies list
+	while ((found_entry < first_node->list_len) &&
+		(0 != strcmp(
+			GET_FREQUENCY_NODE(
+				first_node,
+				found_entry).markov_node->data,
+			second_node->data)))
+	{
+		found_entry++;
+	}
+
+	// We found the entry in the frequency list,
+	// just need to increment the counter
+	if (found_entry != first_node->list_len)
+	{
+		GET_FREQUENCY_NODE(first_node, found_entry).frequency++;
+	}
+	else // Otherwise, add it
+	{
+		if (NULL == first_node->frequencies_list)
+		{
+			new_freq_list = (MarkovNodeFrequency*)calloc(
+				1, sizeof(*new_freq_list));
+		}
+		else
+		{
+			new_freq_list = (MarkovNodeFrequency*)realloc(
+				first_node->frequencies_list,
+				sizeof(*new_freq_list) * (first_node->list_len + 1));
+		}
+		if (NULL == new_freq_list)
+		{
+			(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+			return false;
+		}
+		first_node->frequencies_list = new_freq_list;
+		new_freq_list = new_freq_list + first_node->list_len;
+		new_freq_list->frequency = 1;
+		new_freq_list->markov_node = second_node;
+		first_node->list_len++;
+	}
+
+	return true;
 }
 
 // See documentation at header file
 void free_database(MarkovChain** ptr_chain)
 {
-	
+	int index = 0;
+	LinkedList* db = NULL;
+	Node* current_node = NULL;
+	Node* temp_node = NULL;
+
+	assert(NULL != ptr_chain);
+	assert(NULL != *ptr_chain);
+
+	db = (*ptr_chain)->database;
+	current_node = db->first;
+
+	for (index = 0; index < db->size; index++)
+	{
+
+		if (NULL != current_node->data)
+		{
+			FREE_MEMORY(current_node->data->frequencies_list);
+		}
+		FREE_MEMORY(current_node->data);
+
+		temp_node = current_node->next;
+		FREE_MEMORY(current_node);
+		
+		current_node = temp_node;
+	}
+
+	FREE_MEMORY(db);
+	FREE_MEMORY(*ptr_chain);
 }
 
 // See documentation at header file

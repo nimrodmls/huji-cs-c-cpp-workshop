@@ -23,6 +23,8 @@
 	}						\
 }
 
+#define GET_FREQUENCY_NODE(node, index) (node->frequencies_list[index])
+
 // Typedefs
 
 /**
@@ -44,6 +46,7 @@ typedef struct MarkovNode
 {
 	char* data;
 	MarkovNodeFrequency* frequencies_list;
+	unsigned int list_len;
 
 } MarkovNode;
 
