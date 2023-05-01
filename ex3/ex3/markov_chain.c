@@ -110,11 +110,20 @@ Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
 		goto cleanup;
 	}
 
+	new_node->data = (char*)calloc(
+		strlen(data_ptr), sizeof(*data_ptr));
+	if (NULL == new_node->data)
+	{
+		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+		goto cleanup;
+	}
+
 	new_node->data = data_ptr;
 	if (0 != add(markov_chain->database, new_node))
 	{
 		goto cleanup;
 	}
+
 	// Ownership transferred
 	new_node = NULL;
 
@@ -201,6 +210,7 @@ void free_database(MarkovChain** ptr_chain)
 		if (NULL != current_node->data)
 		{
 			FREE_MEMORY(current_node->data->frequencies_list);
+			FREE_MEMORY(current_node->data->data);
 		}
 		FREE_MEMORY(current_node->data);
 

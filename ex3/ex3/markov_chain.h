@@ -22,6 +22,17 @@
 		ptr = NULL;			\
 	}						\
 }
+ /**
+  * Macro for freeing the markov DB safetly
+  */
+#define FREE_DATABASE(db_ptr)	\
+{								\
+	if (NULL != db_ptr)			\
+	{							\
+		free_database(&db_ptr);	\
+		db_ptr = NULL;			\
+	}							\
+}
 
 #define GET_FREQUENCY_NODE(node, index) (node->frequencies_list[index])
 

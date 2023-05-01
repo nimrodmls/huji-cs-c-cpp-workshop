@@ -5,11 +5,17 @@
 
 #define USAGE_PROMPT \
 	("Usage: ex3 (rand_seed) (tweet_count) (in_file) [max_word_count]\n")
+#define OPEN_FILE_ERROR_PROMPT \
+	("Error: Failed to open input text corpus file")
 
 // Minimal argument count, defined outside the enum on purpose
 #define MIN_ARGUMENTS (4)
 
+#define MAX_SENTENCE_LENGTH (1000)
+#define MAX_WORD_LENGTH (100)
 #define INFINITE_WORD_COUNT (0)
+
+#define SPACE_DELIMITER (" ")
 
 /**
  * Command line arguments indices
@@ -41,9 +47,29 @@ typedef enum ProgramStatus
 // Checks if the given status indicates of a failure
 #define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != (status))
 
+// Safe macro for closing an open file
+#define CLOSE_FILE(file_handle) \
+{								\
+	if (NULL != file_handle)	\
+	{							\
+		fclose(file_handle);	\
+		file_handle = NULL;		\
+	}							\
+}
+
 // Function declarations
 
 ProgramStatus str_to_uint(char* str, unsigned int* out);
+
+ProgramStatus database_process_sentence(
+	char* sentence,
+	MarkovChain* markov_chain,
+	unsigned int* words_count);
+
+int fill_database(
+	FILE* fp, int words_to_read, MarkovChain* markov_chain);
+
+ProgramStatus open_file(char* file_path, FILE** handle);
 
 ProgramStatus parse_command_line(
 	char** argv,
@@ -70,6 +96,104 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 	*out = result;
 
 	return PROGRAM_STATUS_SUCCESS;
+}
+
+// See documentation at function declaration
+ProgramStatus database_process_sentence(
+	char* sentence,
+	MarkovChain* markov_chain,
+	unsigned int* words_count)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	Node* previous_node = NULL;
+	Node* current_node = NULL;
+	char* word = NULL;
+	unsigned int word_count = 0;
+
+	assert(NULL != sentence);
+	assert(NULL != markov_chain);
+	assert(NULL != words_count);
+
+	// Iterating on all words in the sentence
+	word = strtok(sentence, SPACE_DELIMITER);
+	while (NULL != word)
+	{
+		previous_node = current_node;
+		current_node = add_to_database(markov_chain, word);
+		if (NULL == current_node)
+		{
+			return status;
+		}
+		if (NULL != previous_node)
+		{
+			if (!add_node_to_frequencies_list(
+					current_node->data, previous_node->data))
+			{
+				return status;
+			}
+		}
+		word_count++;
+	}
+
+	*words_count = word_count;
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+	return status;
+}
+
+// See documentation at function declaration
+int fill_database(
+	FILE* fp, int words_to_read, MarkovChain* markov_chain)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	char sentence[MAX_SENTENCE_LENGTH] = { 0 };
+	unsigned int words_read = 0;
+	
+	// Reading from the file as long as we didn't reach the end,
+	// and the word count hasn't been surpassed (or we received
+	// to read inifinitely until file end)
+	while ((NULL != fgets(sentence, sizeof(sentence), fp) && 
+		   ((words_to_read < (int)words_read) || 
+			   (INFINITE_WORD_COUNT == words_to_read))))
+	{
+		status = database_process_sentence(
+			sentence, markov_chain, &words_read);
+		if (STATUS_FAILED(status))
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+// See documentation at function declaration
+ProgramStatus open_file(char* file_path, FILE** handle)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	FILE* file_handle = NULL;
+
+	assert(NULL != file_path);
+	assert(NULL != handle);
+
+	file_handle = fopen(file_path, "r");
+	if (NULL == file_handle)
+	{
+		(void)fprintf(stdout, OPEN_FILE_ERROR_PROMPT);
+		goto cleanup;
+	}
+	
+	*handle = file_handle;
+	file_handle = NULL;
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+	CLOSE_FILE(file_handle);
+
+	return status;
+	
 }
 
 // See documentation at function declaration
@@ -122,6 +246,8 @@ ProgramStatus parse_command_line(
 int main(int argc, char** argv)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	MarkovChain* markov_db = NULL;
+	FILE* input_file = NULL;
 	unsigned int seed = 0;
 	unsigned int tweet_count = 0;
 	unsigned int word_count = 0;
@@ -141,9 +267,32 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
+	status = open_file(argv[ARGUMENT_TEXT_FILE_INPUT], &input_file);
+	if (STATUS_FAILED(status))
+	{
+		goto cleanup;
+	}
+
+	create_markov_chain(&markov_db);
+	if (NULL == markov_db)
+	{
+		goto cleanup;
+	}
+
+	if (1 == fill_database(input_file, word_count, markov_db))
+	{
+		goto cleanup;
+	}
+
+	// The input file is no longer required at this stage
+	CLOSE_FILE(input_file);
+
 	status = PROGRAM_STATUS_SUCCESS;
 
 cleanup:
+	FREE_DATABASE(markov_db);
+	CLOSE_FILE(input_file);
+
 	return status;
 }
 
