@@ -61,7 +61,11 @@ typedef struct MarkovNode
 {
 	char* data;
 	MarkovNodeFrequency* frequencies_list;
+	// The number of entries in the list
 	unsigned int list_len;
+	// Counts the total amount of words and their occurances
+	// in the frequencies list
+	unsigned int total_occurances;
 
 } MarkovNode;
 

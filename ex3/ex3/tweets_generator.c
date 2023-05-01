@@ -14,6 +14,7 @@
 #define MAX_SENTENCE_LENGTH (1000)
 #define MAX_WORD_LENGTH (100)
 #define INFINITE_WORD_COUNT (0)
+#define TWEET_MAX_WORD_COUNT (20)
 
 #define SPACE_DELIMITER (" \n")
 
@@ -264,6 +265,7 @@ int main(int argc, char** argv)
 	unsigned int seed = 0;
 	unsigned int tweet_count = 0;
 	unsigned int word_count = 0;
+	unsigned long index = 0;
 
 	assert(NULL != argv);
 
@@ -297,6 +299,12 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
+	//get_first_random_node(markov_db);
+	//for (index = 0; index < tweet_count; index++)
+	//{
+	//	generate_tweet(markov_db, )
+	//}
+
 	// The input file is no longer required at this stage
 	CLOSE_FILE(input_file);
 
@@ -307,27 +315,4 @@ cleanup:
 	CLOSE_FILE(input_file);
 
 	return status;
-}
-
-int mainz(int argc, char* argv)
-{
-	MarkovChain* chain = NULL;
-	create_markov_chain(&chain);
-	Node* retval1 = NULL;
-	Node* retval2 = NULL;
-	Node* retval3 = NULL;
-	char a[] = "name1";
-	retval1 = add_to_database(chain, a);
-	char b[] = "name2";
-	retval2 = add_to_database(chain, b);
-	char c[] = "name3";
-	retval3 = add_to_database(chain, c);
-	add_node_to_frequencies_list(retval1->data, retval2->data);
-	add_node_to_frequencies_list(retval1->data, retval3->data);
-	add_node_to_frequencies_list(retval1->data, retval3->data);
-	add_node_to_frequencies_list(retval1->data, retval3->data);
-	add_node_to_frequencies_list(retval1->data, retval2->data);
-	free_database(&chain);
-	
-	return 0;
 }

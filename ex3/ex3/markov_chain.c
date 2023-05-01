@@ -3,6 +3,10 @@
 
 #include "markov_chain.h"
 
+// Constants
+
+#define NEWLINE_STR ("\n")
+
 // Function declarations
 
 bool update_frequencies_list(
@@ -74,6 +78,7 @@ bool update_frequencies_list(
 	new_freq_list->frequency = 1;
 	new_freq_list->markov_node = new_node;
 	destination->list_len++;
+	destination->total_occurances++;
 
 	return true;
 }
@@ -286,13 +291,24 @@ MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 		chosen_node = get_node_from_database_index(markov_chain, random_num)->data;
 	} while (is_str_endswith(chosen_node->data, SENTENCE_END_CHAR));
 
-	return chosen_node->data;
+	return chosen_node;
 }
 
 // See documentation at header file
 MarkovNode* get_next_random_node(MarkovNode* state_struct_ptr)
 {
-	
+	int random_num = 0;
+	int index = 0;
+
+	assert(NULL != state_struct_ptr);
+
+	// Generating a random number up to the amount of occurances
+	// of words appearing after the given word
+	random_num = get_random_number(
+		state_struct_ptr->total_occurances);
+
+	index = state_struct_ptr->total_occurances / random_num;
+	return state_struct_ptr->frequencies_list[index].markov_node;
 }
 
 // See documentation at header file
@@ -302,5 +318,45 @@ void generate_tweet(
 	int max_length
 )
 {
-	
+	MarkovNode* current_node = NULL;
+	char** tweet = NULL;
+	unsigned long index = 0;
+	unsigned long actual_len = 0;
+
+	assert(NULL != markov_chain);
+
+	if (NULL == first_node)
+	{
+		current_node = get_first_random_node(markov_chain);
+	}
+	else
+	{
+		current_node = first_node;
+	}
+
+	tweet = (char**)calloc(max_length, sizeof(*tweet));
+	if (NULL == tweet)
+	{
+		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+		goto cleanup;
+	}
+
+	tweet[actual_len] = current_node->data;
+	while (!is_str_endswith(
+				current_node->data, SENTENCE_END_CHAR))
+	{
+		actual_len++;
+		current_node = get_next_random_node(current_node);
+		tweet[actual_len] = current_node->data;
+	}
+
+	for (index = 0; index < actual_len; index++)
+	{
+		(void)fprintf(stdout, "%s", tweet[index]);
+	}
+
+	(void)fprintf(stdout, NEWLINE_STR);
+
+cleanup:
+	FREE_MEMORY(tweet);
 }
