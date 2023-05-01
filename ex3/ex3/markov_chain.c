@@ -110,15 +110,16 @@ Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
 		goto cleanup;
 	}
 
+	// Allocating memory for the word, including null terminator
 	new_node->data = (char*)calloc(
-		strlen(data_ptr), sizeof(*data_ptr));
+		strlen(data_ptr)+1, sizeof(*data_ptr));
 	if (NULL == new_node->data)
 	{
 		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
 		goto cleanup;
 	}
-
-	new_node->data = data_ptr;
+	(void)memcpy(new_node->data, data_ptr, strlen(data_ptr));
+	
 	if (0 != add(markov_chain->database, new_node))
 	{
 		goto cleanup;

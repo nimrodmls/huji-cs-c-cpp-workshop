@@ -61,6 +61,8 @@ typedef enum ProgramStatus
 
 ProgramStatus str_to_uint(char* str, unsigned int* out);
 
+int is_str_endswith(char* str, char ch);
+
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
@@ -99,6 +101,24 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 }
 
 // See documentation at function declaration
+int is_str_endswith(char* str, char ch)
+{
+	assert(NULL != str);
+
+	if (0 == strlen(str))
+	{
+		return 0;
+	}
+
+	if (ch != str[strlen(str) - 1])
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+// See documentation at function declaration
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
@@ -127,11 +147,12 @@ ProgramStatus database_process_sentence(
 		if (NULL != previous_node)
 		{
 			if (!add_node_to_frequencies_list(
-					current_node->data, previous_node->data))
+					previous_node->data, current_node->data))
 			{
 				return status;
 			}
 		}
+		word = strtok(NULL, SPACE_DELIMITER);
 		word_count++;
 	}
 
@@ -149,20 +170,22 @@ int fill_database(
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	char sentence[MAX_SENTENCE_LENGTH] = { 0 };
 	unsigned int words_read = 0;
+	unsigned int current_words_read = 0;
 	
 	// Reading from the file as long as we didn't reach the end,
 	// and the word count hasn't been surpassed (or we received
 	// to read inifinitely until file end)
 	while ((NULL != fgets(sentence, sizeof(sentence), fp) && 
-		   ((words_to_read < (int)words_read) || 
+		   ((words_to_read > (int)words_read) || 
 			   (INFINITE_WORD_COUNT == words_to_read))))
 	{
 		status = database_process_sentence(
-			sentence, markov_chain, &words_read);
+			sentence, markov_chain, &current_words_read);
 		if (STATUS_FAILED(status))
 		{
 			return 1;
 		}
+		words_read += current_words_read;
 	}
 
 	return 0;
