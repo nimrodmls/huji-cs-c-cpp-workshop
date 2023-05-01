@@ -16,6 +16,7 @@
 #define INFINITE_WORD_COUNT (0)
 
 #define SPACE_DELIMITER (" ")
+#define SENTENCE_END_CHAR ('.')
 
 /**
  * Command line arguments indices
@@ -66,7 +67,8 @@ int is_str_endswith(char* str, char ch);
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
-	unsigned int* words_count);
+	unsigned int* current_word_count,
+	unsigned int max_word_count);
 
 int fill_database(
 	FILE* fp, int words_to_read, MarkovChain* markov_chain);
@@ -122,21 +124,28 @@ int is_str_endswith(char* str, char ch)
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
-	unsigned int* words_count)
+	unsigned int* current_word_count,
+	unsigned int max_word_count)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	Node* previous_node = NULL;
 	Node* current_node = NULL;
 	char* word = NULL;
 	unsigned int word_count = 0;
+	int end_reached = 0;
 
 	assert(NULL != sentence);
 	assert(NULL != markov_chain);
-	assert(NULL != words_count);
+	assert(NULL != current_word_count);
+
+	word_count = *current_word_count;
 
 	// Iterating on all words in the sentence
 	word = strtok(sentence, SPACE_DELIMITER);
-	while (NULL != word)
+	// Since we don't cut a sentence in the middle, we need to
+	// check if we reached the end of the sentence
+	while ((NULL != word) && 
+		   (word_count < max_word_count || !end_reached))
 	{
 		previous_node = current_node;
 		current_node = add_to_database(markov_chain, word);
@@ -152,14 +161,14 @@ ProgramStatus database_process_sentence(
 				return status;
 			}
 		}
+		end_reached = is_str_endswith(word, SENTENCE_END_CHAR);
 		word = strtok(NULL, SPACE_DELIMITER);
 		word_count++;
 	}
 
-	*words_count = word_count;
+	*current_word_count += word_count;
 
 	status = PROGRAM_STATUS_SUCCESS;
-
 	return status;
 }
 
@@ -170,7 +179,6 @@ int fill_database(
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	char sentence[MAX_SENTENCE_LENGTH] = { 0 };
 	unsigned int words_read = 0;
-	unsigned int current_words_read = 0;
 	
 	// Reading from the file as long as we didn't reach the end,
 	// and the word count hasn't been surpassed (or we received
@@ -180,12 +188,14 @@ int fill_database(
 			   (INFINITE_WORD_COUNT == words_to_read))))
 	{
 		status = database_process_sentence(
-			sentence, markov_chain, &current_words_read);
+			sentence,
+			markov_chain,
+			&words_read,
+			words_to_read);
 		if (STATUS_FAILED(status))
 		{
 			return 1;
 		}
-		words_read += current_words_read;
 	}
 
 	return 0;
