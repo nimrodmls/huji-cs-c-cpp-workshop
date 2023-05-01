@@ -297,6 +297,8 @@ MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 // See documentation at header file
 MarkovNode* get_next_random_node(MarkovNode* state_struct_ptr)
 {
+	MarkovNode* current_node = NULL;
+	int current_shift = 0;
 	int random_num = 0;
 	int index = 0;
 
@@ -307,8 +309,16 @@ MarkovNode* get_next_random_node(MarkovNode* state_struct_ptr)
 	random_num = get_random_number(
 		state_struct_ptr->total_occurances);
 
-	index = state_struct_ptr->total_occurances / random_num;
-	return state_struct_ptr->frequencies_list[index].markov_node;
+	do
+	{
+		current_node = 
+			state_struct_ptr->frequencies_list[index].markov_node;
+		current_shift += 
+			state_struct_ptr->frequencies_list[index].frequency;
+		index++;
+	} while (current_shift < random_num);
+	
+	return current_node;
 }
 
 // See documentation at header file
@@ -352,7 +362,7 @@ void generate_tweet(
 
 	for (index = 0; index < actual_len; index++)
 	{
-		(void)fprintf(stdout, "%s", tweet[index]);
+		(void)fprintf(stdout, "%s ", tweet[index]);
 	}
 
 	(void)fprintf(stdout, NEWLINE_STR);

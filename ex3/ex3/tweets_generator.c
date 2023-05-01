@@ -299,11 +299,10 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-	//get_first_random_node(markov_db);
-	//for (index = 0; index < tweet_count; index++)
-	//{
-	//	generate_tweet(markov_db, )
-	//}
+	for (index = 0; index < tweet_count; index++)
+	{
+		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
+	}
 
 	// The input file is no longer required at this stage
 	CLOSE_FILE(input_file);
