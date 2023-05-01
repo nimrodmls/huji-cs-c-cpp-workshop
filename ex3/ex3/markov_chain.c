@@ -3,6 +3,55 @@
 
 #include "markov_chain.h"
 
+// Function declarations
+
+bool update_frequencies_list(
+	MarkovNode* destination, MarkovNode* new_node);
+
+// Function definitions
+
+// See documentation at declaration
+bool update_frequencies_list(
+	MarkovNode* destination, MarkovNode* new_node)
+{
+	MarkovNodeFrequency* new_freq_list = NULL;
+
+	assert(NULL != destination);
+	assert(NULL != new_node);
+
+	// Allocating space for the new node in the frequencies list
+	// If the list is empty, we need to allocate initial space
+	// otherwise, we reallocate the list with extra space so
+	// the list can be continuous in the memory
+	if (NULL == destination->frequencies_list)
+	{
+		new_freq_list = (MarkovNodeFrequency*)calloc(
+			1, sizeof(*new_freq_list));
+	}
+	else
+	{
+		new_freq_list = (MarkovNodeFrequency*)realloc(
+			destination->frequencies_list,
+			sizeof(*new_freq_list) * (destination->list_len + 1));
+	}
+
+	if (NULL == new_freq_list)
+	{
+		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+		return false;
+	}
+
+	destination->frequencies_list = new_freq_list;
+	// Since new_freq_list points to the beginning of the list,
+	// and we want to update the last element, we reset the ptr
+	new_freq_list = new_freq_list + destination->list_len;
+	new_freq_list->frequency = 1;
+	new_freq_list->markov_node = new_node;
+	destination->list_len++;
+
+	return true;
+}
+
 // See documentation at header file
 void create_markov_chain(MarkovChain** chain)
 {
@@ -126,27 +175,7 @@ bool add_node_to_frequencies_list(
 	}
 	else // Otherwise, add it
 	{
-		if (NULL == first_node->frequencies_list)
-		{
-			new_freq_list = (MarkovNodeFrequency*)calloc(
-				1, sizeof(*new_freq_list));
-		}
-		else
-		{
-			new_freq_list = (MarkovNodeFrequency*)realloc(
-				first_node->frequencies_list,
-				sizeof(*new_freq_list) * (first_node->list_len + 1));
-		}
-		if (NULL == new_freq_list)
-		{
-			(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
-			return false;
-		}
-		first_node->frequencies_list = new_freq_list;
-		new_freq_list = new_freq_list + first_node->list_len;
-		new_freq_list->frequency = 1;
-		new_freq_list->markov_node = second_node;
-		first_node->list_len++;
+		return update_frequencies_list(first_node, second_node);
 	}
 
 	return true;
