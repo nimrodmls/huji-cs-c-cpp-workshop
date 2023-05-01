@@ -1,13 +1,17 @@
 #ifndef _MARKOV_CHAIN_H_
 #define _MARKOV_CHAIN_H_
 
-#include "linked_list.h"
 #include <stdio.h>  // For printf(), sscanf()
 #include <stdlib.h> // For exit(), malloc()
 #include <stdbool.h> // for bool
 
+#include "linked_list.h"
+
+// Constants
+
 #define ALLOCATION_ERROR_MASSAGE "Allocation failure: Failed to allocate"\
             "new memory\n"
+#define SENTENCE_END_CHAR ('.')
 
 // Macros
 
@@ -16,10 +20,10 @@
  */
 #define FREE_MEMORY(ptr)	\
 {							\
-	if (NULL != ptr)		\
+	if (NULL != (ptr))		\
 	{						\
 		free(ptr);			\
-		ptr = NULL;			\
+		(ptr) = NULL;			\
 	}						\
 }
  /**
@@ -27,10 +31,10 @@
   */
 #define FREE_DATABASE(db_ptr)	\
 {								\
-	if (NULL != db_ptr)			\
+	if (NULL != (db_ptr))			\
 	{							\
-		free_database(&db_ptr);	\
-		db_ptr = NULL;			\
+		free_database(&(db_ptr));	\
+		(db_ptr) = NULL;			\
 	}							\
 }
 
@@ -70,6 +74,10 @@ typedef struct MarkovNodeFrequency
 	unsigned long frequency;
 
 } MarkovNodeFrequency;
+
+// Functions
+
+int is_str_endswith(char* str, char ch);
 
 void create_markov_chain(MarkovChain** chain);
 

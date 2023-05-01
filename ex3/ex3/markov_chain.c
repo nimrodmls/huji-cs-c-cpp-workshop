@@ -8,7 +8,33 @@
 bool update_frequencies_list(
 	MarkovNode* destination, MarkovNode* new_node);
 
+int get_random_number(int max_number);
+
 // Function definitions
+
+// See documentation at function declaration
+int is_str_endswith(char* str, char ch)
+{
+	assert(NULL != str);
+
+	if (0 == strlen(str))
+	{
+		return 0;
+	}
+
+	if (ch != str[strlen(str) - 1])
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+// See documentation at declaration
+int get_random_number(int max_number)
+{
+	return rand() % max_number;
+}
 
 // See documentation at declaration
 bool update_frequencies_list(
@@ -155,6 +181,28 @@ Node* get_node_from_database(
 	return current_node;
 }
 
+Node* get_node_from_database_index(
+	MarkovChain* markov_chain, unsigned int index)
+{
+	Node* current_node = NULL;
+	unsigned int iter = 0;
+
+	assert(NULL != markov_chain);
+
+	if (index >= markov_chain->database->size)
+	{
+		return NULL;
+	}
+
+	current_node = markov_chain->database->first;
+	for (iter = 1; iter <= index; iter++)
+	{
+		current_node = current_node->next;
+	}
+
+	return current_node;
+}
+
 // See documentation at header file
 bool add_node_to_frequencies_list(
 	MarkovNode* first_node, MarkovNode* second_node)
@@ -168,11 +216,8 @@ bool add_node_to_frequencies_list(
 
 	// First we look up the second node in the frequencies list
 	while ((found_entry < first_node->list_len) &&
-		(0 != strcmp(
-			GET_FREQUENCY_NODE(
-				first_node,
-				found_entry).markov_node->data,
-			second_node->data)))
+		   (GET_FREQUENCY_NODE(
+				first_node, found_entry).markov_node == second_node))
 	{
 		found_entry++;
 	}
@@ -228,7 +273,20 @@ void free_database(MarkovChain** ptr_chain)
 // See documentation at header file
 MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 {
-	
+	int random_num = 0;
+	MarkovNode* chosen_node = NULL;
+
+	assert(NULL != markov_chain);
+
+	// Iterate until we find a suitable non-end-of-sentence word
+	do
+	{
+		random_num =
+			get_random_number(markov_chain->database->size - 1);
+		chosen_node = get_node_from_database_index(markov_chain, random_num)->data;
+	} while (is_str_endswith(chosen_node->data, SENTENCE_END_CHAR));
+
+	return chosen_node->data;
 }
 
 // See documentation at header file

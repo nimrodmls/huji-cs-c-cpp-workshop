@@ -15,8 +15,7 @@
 #define MAX_WORD_LENGTH (100)
 #define INFINITE_WORD_COUNT (0)
 
-#define SPACE_DELIMITER (" ")
-#define SENTENCE_END_CHAR ('.')
+#define SPACE_DELIMITER (" \n")
 
 /**
  * Command line arguments indices
@@ -51,18 +50,16 @@ typedef enum ProgramStatus
 // Safe macro for closing an open file
 #define CLOSE_FILE(file_handle) \
 {								\
-	if (NULL != file_handle)	\
+	if (NULL != (file_handle))	\
 	{							\
 		fclose(file_handle);	\
-		file_handle = NULL;		\
+		(file_handle) = NULL;		\
 	}							\
 }
 
 // Function declarations
 
 ProgramStatus str_to_uint(char* str, unsigned int* out);
-
-int is_str_endswith(char* str, char ch);
 
 ProgramStatus database_process_sentence(
 	char* sentence,
@@ -103,24 +100,6 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 }
 
 // See documentation at function declaration
-int is_str_endswith(char* str, char ch)
-{
-	assert(NULL != str);
-
-	if (0 == strlen(str))
-	{
-		return 0;
-	}
-
-	if (ch != str[strlen(str) - 1])
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
-// See documentation at function declaration
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
@@ -142,10 +121,11 @@ ProgramStatus database_process_sentence(
 
 	// Iterating on all words in the sentence
 	word = strtok(sentence, SPACE_DELIMITER);
-	// Since we don't cut a sentence in the middle, we need to
-	// check if we reached the end of the sentence
+	// All these conditions help refrain cutting a sentence
 	while ((NULL != word) && 
-		   (word_count < max_word_count || !end_reached))
+		   (word_count < max_word_count || 
+			   INFINITE_WORD_COUNT == max_word_count || 
+			   !end_reached))
 	{
 		previous_node = current_node;
 		current_node = add_to_database(markov_chain, word);
