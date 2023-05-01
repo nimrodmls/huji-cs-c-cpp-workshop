@@ -194,7 +194,7 @@ Node* get_node_from_database_index(
 
 	assert(NULL != markov_chain);
 
-	if (index >= markov_chain->database->size)
+	if (index >= (unsigned int)markov_chain->database->size)
 	{
 		return NULL;
 	}
@@ -332,6 +332,7 @@ void generate_tweet(
 	char** tweet = NULL;
 	unsigned long index = 0;
 	unsigned long actual_len = 0;
+	MarkovNode* orig = NULL;
 
 	assert(NULL != markov_chain);
 
@@ -353,9 +354,11 @@ void generate_tweet(
 
 	tweet[actual_len] = current_node->data;
 	while (!is_str_endswith(
-				current_node->data, SENTENCE_END_CHAR))
+			current_node->data, SENTENCE_END_CHAR) && 
+		   (actual_len < max_length))
 	{
 		actual_len++;
+		orig = current_node;
 		current_node = get_next_random_node(current_node);
 		tweet[actual_len] = current_node->data;
 	}

@@ -299,6 +299,8 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
+	srand(seed); // Setting the seed before proceeding to 
+				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)
 	{
 		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
