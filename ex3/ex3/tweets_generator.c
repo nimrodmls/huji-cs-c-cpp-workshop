@@ -128,7 +128,16 @@ ProgramStatus database_process_sentence(
 			   INFINITE_WORD_COUNT == max_word_count || 
 			   !end_reached))
 	{
-		previous_node = current_node;
+		if (end_reached)
+		{
+			end_reached = 0;
+			previous_node = NULL;
+		}
+		else
+		{
+			previous_node = current_node;
+		}
+
 		current_node = add_to_database(markov_chain, word);
 		if (NULL == current_node)
 		{
