@@ -326,7 +326,7 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-	//print_markov_chain(markov_db);
+	print_markov_chain(markov_db);
 	srand(seed); // Setting the seed before proceeding to 
 				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)

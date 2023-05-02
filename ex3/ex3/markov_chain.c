@@ -79,7 +79,6 @@ bool update_frequencies_list(
 	new_freq_list->frequency = 1;
 	new_freq_list->markov_node = new_node;
 	destination->list_len++;
-	destination->total_occurances++;
 
 	return true;
 }
@@ -215,7 +214,6 @@ bool add_node_to_frequencies_list(
 {
 	bool status = false;
 	unsigned int found_entry = 0;
-	MarkovNodeFrequency* new_freq_list = NULL;
 
 	assert(NULL != first_node);
 	assert(NULL != second_node);
@@ -233,10 +231,16 @@ bool add_node_to_frequencies_list(
 	if (found_entry != first_node->list_len)
 	{
 		GET_FREQUENCY_NODE(first_node, found_entry).frequency++;
+		status = true;
 	}
 	else // Otherwise, add it
 	{
-		return update_frequencies_list(first_node, second_node);
+		status = update_frequencies_list(first_node, second_node);
+	}
+
+	if (status)
+	{
+		first_node->total_occurances++;
 	}
 
 	return true;
