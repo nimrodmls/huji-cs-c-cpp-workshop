@@ -222,7 +222,7 @@ bool add_node_to_frequencies_list(
 	// First we look up the second node in the frequencies list
 	while ((found_entry < first_node->list_len) &&
 		   (GET_FREQUENCY_NODE(
-				first_node, found_entry).markov_node == second_node))
+				first_node, found_entry).markov_node != second_node))
 	{
 		found_entry++;
 	}
@@ -286,8 +286,14 @@ MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 	// Iterate until we find a suitable non-end-of-sentence word
 	do
 	{
+		//for (int index = 1; index < 80; index++)
+		//{
+		//	srand(0);
+		//	fprintf(stdout, "%d - %d\n", index, get_random_number(index));
+		//}
 		random_num =
-			get_random_number(markov_chain->database->size - 1);
+			get_random_number(markov_chain->database->size);
+		fprintf(stdout, "%d\n", random_num);
 		chosen_node = get_node_from_database_index(markov_chain, random_num)->data;
 	} while (is_str_endswith(chosen_node->data, SENTENCE_END_CHAR));
 
@@ -309,14 +315,14 @@ MarkovNode* get_next_random_node(MarkovNode* state_struct_ptr)
 	random_num = get_random_number(
 		state_struct_ptr->total_occurances);
 
-	do
+	while (current_shift <= random_num)
 	{
-		current_node = 
+		current_node =
 			state_struct_ptr->frequencies_list[index].markov_node;
-		current_shift += 
+		current_shift +=
 			state_struct_ptr->frequencies_list[index].frequency;
 		index++;
-	} while (current_shift < random_num);
+	}
 	
 	return current_node;
 }
@@ -332,7 +338,6 @@ void generate_tweet(
 	char** tweet = NULL;
 	unsigned long index = 0;
 	unsigned long actual_len = 0;
-	MarkovNode* orig = NULL;
 
 	assert(NULL != markov_chain);
 
@@ -353,14 +358,14 @@ void generate_tweet(
 	}
 
 	tweet[actual_len] = current_node->data;
+	actual_len++;
 	while (!is_str_endswith(
 			current_node->data, SENTENCE_END_CHAR) && 
 		   (actual_len < max_length))
 	{
-		actual_len++;
-		orig = current_node;
 		current_node = get_next_random_node(current_node);
 		tweet[actual_len] = current_node->data;
+		actual_len++;
 	}
 
 	for (index = 0; index < actual_len; index++)

@@ -147,7 +147,7 @@ ProgramStatus database_process_sentence(
 		word_count++;
 	}
 
-	*current_word_count += word_count;
+	*current_word_count = word_count;
 
 	status = PROGRAM_STATUS_SUCCESS;
 	return status;
@@ -257,6 +257,24 @@ ProgramStatus parse_command_line(
 	return status;
 }
 
+void print_markov_chain(MarkovChain* chain)
+{
+	int index = 0;
+	int inner_index = 0;
+	Node* current_node = NULL;
+
+	current_node = chain->database->first;
+	for (index = 0; index < chain->database->size; index++)
+	{
+		fprintf(stdout, "%d) Current Node: %s - Total: %d\n", index, current_node->data->data, current_node->data->total_occurances);
+		for (inner_index = 0; inner_index < current_node->data->list_len; inner_index++)
+		{
+			fprintf(stdout, "\t%s - Freq: %d\n", current_node->data->frequencies_list[inner_index].markov_node->data, current_node->data->frequencies_list[inner_index].frequency);
+		}
+		current_node = current_node->next;
+	}
+}
+
 int main(int argc, char** argv)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
@@ -299,6 +317,7 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
+	print_markov_chain(markov_db);
 	srand(seed); // Setting the seed before proceeding to 
 				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)

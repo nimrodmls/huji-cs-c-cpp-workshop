@@ -107,6 +107,9 @@ Node* add_to_database(MarkovChain *markov_chain, char *data_ptr);
 Node* get_node_from_database(
 	MarkovChain *markov_chain, char *data_ptr);
 
+Node* get_node_from_database_index(
+	MarkovChain* markov_chain, unsigned int index);
+
 /**
  * Add the second markov_node to the frequency list
  *	of the first markov_node.
