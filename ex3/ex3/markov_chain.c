@@ -286,14 +286,8 @@ MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 	// Iterate until we find a suitable non-end-of-sentence word
 	do
 	{
-		//for (int index = 1; index < 80; index++)
-		//{
-		//	srand(0);
-		//	fprintf(stdout, "%d - %d\n", index, get_random_number(index));
-		//}
 		random_num =
 			get_random_number(markov_chain->database->size);
-		fprintf(stdout, "%d\n", random_num);
 		chosen_node = get_node_from_database_index(markov_chain, random_num)->data;
 	} while (is_str_endswith(chosen_node->data, SENTENCE_END_CHAR));
 

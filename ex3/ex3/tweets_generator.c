@@ -125,8 +125,7 @@ ProgramStatus database_process_sentence(
 	// All these conditions help refrain cutting a sentence
 	while ((NULL != word) && 
 		   (word_count < max_word_count || 
-			   INFINITE_WORD_COUNT == max_word_count || 
-			   !end_reached))
+			   INFINITE_WORD_COUNT == max_word_count))
 	{
 		if (end_reached)
 		{
@@ -326,11 +325,11 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-	print_markov_chain(markov_db);
 	srand(seed); // Setting the seed before proceeding to 
 				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)
 	{
+		(void)fprintf(stdout, "Tweet %d: ", index+1);
 		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
 	}
 
