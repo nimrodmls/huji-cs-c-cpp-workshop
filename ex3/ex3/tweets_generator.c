@@ -7,6 +7,7 @@
 	("Usage: ex3 (rand_seed) (tweet_count) (in_file) [max_word_count]\n")
 #define OPEN_FILE_ERROR_PROMPT \
 	("Error: Failed to open input text corpus file")
+#define TWEET_PROMPT ("Tweet %d: ")
 
 // Minimal argument count, defined outside the enum on purpose
 #define MIN_ARGUMENTS (4)
@@ -16,7 +17,7 @@
 #define INFINITE_WORD_COUNT (0)
 #define TWEET_MAX_WORD_COUNT (20)
 
-#define SPACE_DELIMITER (" \n")
+#define SENTENCE_DELIMITERS (" \n")
 
 /**
  * Command line arguments indices
@@ -121,7 +122,7 @@ ProgramStatus database_process_sentence(
 	word_count = *current_word_count;
 
 	// Iterating on all words in the sentence
-	word = strtok(sentence, SPACE_DELIMITER);
+	word = strtok(sentence, SENTENCE_DELIMITERS);
 	// All these conditions help refrain cutting a sentence
 	while ((NULL != word) && 
 		   (word_count < max_word_count || 
@@ -151,7 +152,7 @@ ProgramStatus database_process_sentence(
 			}
 		}
 		end_reached = is_str_endswith(word, SENTENCE_END_CHAR);
-		word = strtok(NULL, SPACE_DELIMITER);
+		word = strtok(NULL, SENTENCE_DELIMITERS);
 		word_count++;
 	}
 
@@ -325,11 +326,12 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
+	//print_markov_chain(markov_db);
 	srand(seed); // Setting the seed before proceeding to 
 				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)
 	{
-		(void)fprintf(stdout, "Tweet %d: ", index+1);
+		(void)fprintf(stdout, TWEET_PROMPT, index+1);
 		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
 	}
 

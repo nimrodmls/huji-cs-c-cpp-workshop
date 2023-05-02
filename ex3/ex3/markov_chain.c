@@ -5,6 +5,7 @@
 
 // Constants
 
+#define TWEET_WORD_FORMAT ("%s ")
 #define NEWLINE_STR ("\n")
 
 // Function declarations
@@ -355,7 +356,7 @@ void generate_tweet(
 	actual_len++;
 	while (!is_str_endswith(
 			current_node->data, SENTENCE_END_CHAR) && 
-		   (actual_len < max_length))
+		   (actual_len < (unsigned int)max_length))
 	{
 		current_node = get_next_random_node(current_node);
 		tweet[actual_len] = current_node->data;
@@ -364,7 +365,7 @@ void generate_tweet(
 
 	for (index = 0; index < actual_len; index++)
 	{
-		(void)fprintf(stdout, "%s ", tweet[index]);
+		(void)fprintf(stdout, TWEET_WORD_FORMAT, tweet[index]);
 	}
 
 	(void)fprintf(stdout, NEWLINE_STR);
