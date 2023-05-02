@@ -243,7 +243,7 @@ bool add_node_to_frequencies_list(
 		first_node->total_occurances++;
 	}
 
-	return true;
+	return status;
 }
 
 // See documentation at header file
