@@ -62,6 +62,13 @@ typedef enum ProgramStatus
 
 ProgramStatus str_to_uint(char* str, unsigned int* out);
 
+ProgramStatus add_database_info(
+	char* word,
+	MarkovChain* markov_chain,
+	Node** current_node,
+	Node* previous_node
+);
+
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
@@ -100,6 +107,40 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 	return PROGRAM_STATUS_SUCCESS;
 }
 
+ProgramStatus add_database_info(
+	char* word,
+	MarkovChain* markov_chain,
+	Node** current_node,
+	Node* previous_node
+)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	Node* local_node = NULL;
+
+	assert(NULL != word);
+	assert(NULL != markov_chain);
+	assert(NULL != current_node);
+	
+	local_node = add_to_database(markov_chain, word);
+	if (NULL == local_node)
+	{
+		return status;
+	}
+	if (NULL != previous_node)
+	{
+		if (!add_node_to_frequencies_list(
+			previous_node->data, local_node->data))
+		{
+			return status;
+		}
+	}
+
+	*current_node = local_node;
+
+	status = PROGRAM_STATUS_SUCCESS;
+	return status;
+}
+
 // See documentation at function declaration
 ProgramStatus database_process_sentence(
 	char* sentence,
@@ -120,9 +161,7 @@ ProgramStatus database_process_sentence(
 
 	word_count = *current_word_count;
 
-	// Iterating on all words in the sentence
 	word = strtok(sentence, SENTENCE_DELIMITERS);
-	// All these conditions help refrain cutting a sentence
 	while ((NULL != word) && 
 		   (word_count < max_word_count || 
 			   INFINITE_WORD_COUNT == max_word_count))
@@ -137,18 +176,11 @@ ProgramStatus database_process_sentence(
 			previous_node = current_node;
 		}
 
-		current_node = add_to_database(markov_chain, word);
-		if (NULL == current_node)
+		status = add_database_info(
+			word, markov_chain, &current_node, previous_node);
+		if (STATUS_FAILED(status))
 		{
 			return status;
-		}
-		if (NULL != previous_node)
-		{
-			if (!add_node_to_frequencies_list(
-					previous_node->data, current_node->data))
-			{
-				return status;
-			}
 		}
 		end_reached = is_str_endswith(word, SENTENCE_END_CHAR);
 		word = strtok(NULL, SENTENCE_DELIMITERS);
@@ -265,50 +297,20 @@ ProgramStatus parse_command_line(
 	return status;
 }
 
-void print_markov_chain(MarkovChain* chain)
-{
-	int index = 0;
-	int inner_index = 0;
-	Node* current_node = NULL;
-
-	current_node = chain->database->first;
-	for (index = 0; index < chain->database->size; index++)
-	{
-		fprintf(stdout, "%d) Current Node: %s - Total: %u\n", index, current_node->data->data, current_node->data->total_occurances);
-		for (inner_index = 0; inner_index < current_node->data->list_len; inner_index++)
-		{
-			fprintf(stdout, "\t%s - Freq: %lu\n", current_node->data->frequencies_list[inner_index].markov_node->data, current_node->data->frequencies_list[inner_index].frequency);
-		}
-		current_node = current_node->next;
-	}
-}
-
-int main(int argc, char** argv)
+ProgramStatus run_generator(
+	unsigned int seed, 
+	unsigned int word_count, 
+	unsigned int tweet_count, 
+	char* file_path)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	MarkovChain* markov_db = NULL;
-	FILE* input_file = NULL;
-	unsigned int seed = 0;
-	unsigned int tweet_count = 0;
-	unsigned int word_count = 0;
 	unsigned long index = 0;
+	FILE* input_file = NULL;
 
-	assert(NULL != argv);
+	assert(NULL != file_path);
 
-	if ((MIN_ARGUMENTS > argc) || (MAX_ARGUMENTS < argc))
-	{
-		(void)fprintf(stdout, USAGE_PROMPT);
-		goto cleanup;
-	}
-
-	status = parse_command_line(
-		argv, argc, &seed, &tweet_count, &word_count);
-	if (STATUS_FAILED(status))
-	{
-		goto cleanup;
-	}
-
-	status = open_file(argv[ARGUMENT_TEXT_FILE_INPUT], &input_file);
+	status = open_file(file_path, &input_file);
 	if (STATUS_FAILED(status))
 	{
 		goto cleanup;
@@ -325,22 +327,59 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-	//print_markov_chain(markov_db);
-	srand(seed); // Setting the seed before proceeding to 
-				 // the randomized actions
-	for (index = 0; index < tweet_count; index++)
-	{
-		(void)fprintf(stdout, TWEET_PROMPT, index+1);
-		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
-	}
-
 	// The input file is no longer required at this stage
 	CLOSE_FILE(input_file);
+
+	srand(seed); // Setting the seed before proceeding to 
+	// the randomized actions
+	for (index = 0; index < tweet_count; index++)
+	{
+		(void)fprintf(stdout, TWEET_PROMPT, index + 1);
+		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
+	}
 
 	status = PROGRAM_STATUS_SUCCESS;
 
 cleanup:
 	FREE_DATABASE(markov_db);
+	CLOSE_FILE(input_file);
+
+	return status;
+}
+
+int main(int argc, char** argv)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	FILE* input_file = NULL;
+	unsigned int seed = 0;
+	unsigned int tweet_count = 0;
+	unsigned int word_count = 0;
+
+	assert(NULL != argv);
+
+	if ((MIN_ARGUMENTS > argc) || (MAX_ARGUMENTS < argc))
+	{
+		(void)fprintf(stdout, USAGE_PROMPT);
+		goto cleanup;
+	}
+
+	status = parse_command_line(
+		argv, argc, &seed, &tweet_count, &word_count);
+	if (STATUS_FAILED(status))
+	{
+		goto cleanup;
+	}
+
+	status = run_generator(
+		seed, word_count, tweet_count, argv[ARGUMENT_TEXT_FILE_INPUT]);
+	if (STATUS_FAILED(status))
+	{
+		goto cleanup;
+	}
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
 	CLOSE_FILE(input_file);
 
 	return status;

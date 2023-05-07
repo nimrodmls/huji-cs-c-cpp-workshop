@@ -5,6 +5,7 @@
 
 // Constants
 #define MAX_WORD_LENGTH (100)
+#define TWEET_WORD_SPACER (" ")
 #define TWEET_WORD_FORMAT ("%s\n")
 
 // Function declarations
@@ -334,7 +335,6 @@ void generate_tweet(
 {
 	MarkovNode* current_node = NULL;
 	char* tweet = NULL;
-	unsigned long index = 0;
 	unsigned long actual_len = 0;
 
 	assert(NULL != markov_chain);
@@ -363,7 +363,8 @@ void generate_tweet(
 		   (actual_len < (unsigned int)max_length))
 	{
 		current_node = get_next_random_node(current_node);
-		(void)strcat(tweet, " ");
+		// Manually spacing each word by appending a space char
+		(void)strcat(tweet, TWEET_WORD_SPACER);
 		(void)strcat(tweet, current_node->data);
 		actual_len++;
 	}
