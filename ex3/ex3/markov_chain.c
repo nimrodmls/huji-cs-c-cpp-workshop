@@ -4,9 +4,8 @@
 #include "markov_chain.h"
 
 // Constants
-
-#define TWEET_WORD_FORMAT ("%s ")
-#define NEWLINE_STR ("\n")
+#define MAX_WORD_LENGTH (100)
+#define TWEET_WORD_FORMAT ("%s\n")
 
 // Function declarations
 
@@ -334,7 +333,7 @@ void generate_tweet(
 )
 {
 	MarkovNode* current_node = NULL;
-	char** tweet = NULL;
+	char* tweet = NULL;
 	unsigned long index = 0;
 	unsigned long actual_len = 0;
 
@@ -349,30 +348,27 @@ void generate_tweet(
 		current_node = first_node;
 	}
 
-	tweet = (char**)calloc(max_length, sizeof(*tweet));
+	tweet = (char*)calloc(
+		max_length*MAX_WORD_LENGTH, sizeof(*tweet));
 	if (NULL == tweet)
 	{
 		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
 		goto cleanup;
 	}
 
-	tweet[actual_len] = current_node->data;
+	(void)strcpy(tweet, current_node->data);
 	actual_len++;
 	while (!is_str_endswith(
 			current_node->data, SENTENCE_END_CHAR) && 
 		   (actual_len < (unsigned int)max_length))
 	{
 		current_node = get_next_random_node(current_node);
-		tweet[actual_len] = current_node->data;
+		(void)strcat(tweet, " ");
+		(void)strcat(tweet, current_node->data);
 		actual_len++;
 	}
 
-	for (index = 0; index < actual_len; index++)
-	{
-		(void)fprintf(stdout, TWEET_WORD_FORMAT, tweet[index]);
-	}
-
-	(void)fprintf(stdout, NEWLINE_STR);
+	(void)fprintf(stdout, TWEET_WORD_FORMAT, tweet);
 
 cleanup:
 	FREE_MEMORY(tweet);

@@ -7,13 +7,12 @@
 	("Usage: ex3 (rand_seed) (tweet_count) (in_file) [max_word_count]\n")
 #define OPEN_FILE_ERROR_PROMPT \
 	("Error: Failed to open input text corpus file")
-#define TWEET_PROMPT ("Tweet %d: ")
+#define TWEET_PROMPT ("Tweet %lu: ")
 
 // Minimal argument count, defined outside the enum on purpose
 #define MIN_ARGUMENTS (4)
 
 #define MAX_SENTENCE_LENGTH (1000)
-#define MAX_WORD_LENGTH (100)
 #define INFINITE_WORD_COUNT (0)
 #define TWEET_MAX_WORD_COUNT (20)
 
@@ -275,10 +274,10 @@ void print_markov_chain(MarkovChain* chain)
 	current_node = chain->database->first;
 	for (index = 0; index < chain->database->size; index++)
 	{
-		fprintf(stdout, "%d) Current Node: %s - Total: %d\n", index, current_node->data->data, current_node->data->total_occurances);
+		fprintf(stdout, "%d) Current Node: %s - Total: %u\n", index, current_node->data->data, current_node->data->total_occurances);
 		for (inner_index = 0; inner_index < current_node->data->list_len; inner_index++)
 		{
-			fprintf(stdout, "\t%s - Freq: %d\n", current_node->data->frequencies_list[inner_index].markov_node->data, current_node->data->frequencies_list[inner_index].frequency);
+			fprintf(stdout, "\t%s - Freq: %lu\n", current_node->data->frequencies_list[inner_index].markov_node->data, current_node->data->frequencies_list[inner_index].frequency);
 		}
 		current_node = current_node->next;
 	}
@@ -326,7 +325,7 @@ int main(int argc, char** argv)
 		goto cleanup;
 	}
 
-	print_markov_chain(markov_db);
+	//print_markov_chain(markov_db);
 	srand(seed); // Setting the seed before proceeding to 
 				 // the randomized actions
 	for (index = 0; index < tweet_count; index++)
