@@ -10,9 +10,22 @@
 
 // Function declarations
 
+/**
+ * Adding a new entry of new_node to the frequency list of the
+ * destination. This function doesn't check new_node's existence.
+ * @param destination - The destination frequency list
+ * @param new_node - The node to add to dest's frequency list
+ * @return true on success, false otherwise
+ */
 bool update_frequencies_list(
 	MarkovNode* destination, MarkovNode* new_node);
 
+/**
+ * Generating a random integer from interval [0, max_number)
+ * Don't forget to set the seed beforehand!
+ * @param max_number - The maximal number minus 1 to geenrate.
+ * @return The randomized number
+ */
 int get_random_number(int max_number);
 
 // Function definitions
@@ -186,6 +199,7 @@ Node* get_node_from_database(
 	return current_node;
 }
 
+// See documentation at header file
 Node* get_node_from_database_index(
 	MarkovChain* markov_chain, unsigned int index)
 {
