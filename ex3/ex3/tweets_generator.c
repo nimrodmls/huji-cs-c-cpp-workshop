@@ -24,7 +24,7 @@
 #define TWEET_MAX_WORD_COUNT (20)
 // All delimiters found in a sentence, 
 //	indicates how sentence is separated
-#define SENTENCE_DELIMITERS (" \n")
+#define SENTENCE_DELIMITERS (" \n\r")
 // Format for converstion from string to uint
 #define UNSIGNED_INT_FORMAT ("%u")
 
@@ -430,7 +430,7 @@ int main(int argc, char** argv)
 	unsigned int seed = 0;
 	unsigned int tweet_count = 0;
 	unsigned int word_count = 0;
-
+	
 	assert(NULL != argv);
 
 	if ((MIN_ARGUMENTS > argc) || (MAX_ARGUMENTS < argc))
