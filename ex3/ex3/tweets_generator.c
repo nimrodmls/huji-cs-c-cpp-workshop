@@ -3,20 +3,30 @@
 
 #include "markov_chain.h"
 
+// Constants
+
+// Prompt which indicates of invalid command line
 #define USAGE_PROMPT \
 	("Usage: ex3 (rand_seed) (tweet_count) (in_file) [max_word_count]\n")
+// Prompt which indicates of file reading failure
 #define OPEN_FILE_ERROR_PROMPT \
 	("Error: Failed to open input text corpus file")
+// Format to print a tweet
 #define TWEET_PROMPT ("Tweet %lu: ")
-
 // Minimal argument count, defined outside the enum on purpose
 #define MIN_ARGUMENTS (4)
-
+// Maximal amount of characters found in a sentence
+//	as defined in the exercise spec
 #define MAX_SENTENCE_LENGTH (1000)
+// Indicates to read from the file infinitely (until all is read)
 #define INFINITE_WORD_COUNT (0)
+// Max words in a tweet as defined in the exercise spec
 #define TWEET_MAX_WORD_COUNT (20)
-
+// All delimiters found in a sentence, 
+//	indicates how sentence is separated
 #define SENTENCE_DELIMITERS (" \n")
+// Format for converstion from string to uint
+#define UNSIGNED_INT_FORMAT ("%u")
 
 /**
  * Command line arguments indices
@@ -54,14 +64,28 @@ typedef enum ProgramStatus
 	if (NULL != (file_handle))	\
 	{							\
 		fclose(file_handle);	\
-		(file_handle) = NULL;		\
+		(file_handle) = NULL;	\
 	}							\
 }
 
 // Function declarations
 
+/**
+ * Converting a string of numericals to an unsigned integer.
+ * @param str - The string to convert.
+ * @param out - The converted output unsigned integer.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 ProgramStatus str_to_uint(char* str, unsigned int* out);
 
+/**
+ * Adding word along with its necessary information to the DB.
+ * @param word - The word to add.
+ * @param markov_chain - The database object, MUST BE INITIALIZED.
+ * @param current_node - The node added to the database (deref out)
+ * @param previous_node - The node of the previous word.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 ProgramStatus add_database_info(
 	char* word,
 	MarkovChain* markov_chain,
@@ -69,23 +93,73 @@ ProgramStatus add_database_info(
 	Node* previous_node
 );
 
+/**
+ * Adding a single sentence to the database.
+ * @param sentence - A sequence of words, words are 
+ *		separated by space characters.
+ * @param markov_chain - The database to add to.
+ * @param current_word_count - The current count of 
+ *		words added to the DB.
+ * @param max_word_count - The maximal word count to add to the DB.
+ *		If max is reached, no more words are read.
+ *		Specify INFINITE_WORD_COUNT to read without any limit.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
 	unsigned int* current_word_count,
 	unsigned int max_word_count);
 
+/**
+ * Filling the database with words from the given file.
+ * @param fp - The file handle to read data from.
+ * @param words_to_read - The maximal words to read from the file,
+ *		if INFINITE_WORD_COUNT is given, the whole file is read.
+ * @param markov_chain - Handle to the Markov Chain to data to.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 int fill_database(
 	FILE* fp, int words_to_read, MarkovChain* markov_chain);
 
+/**
+ * Filling the database with words from the given file.
+ * @param file_path - Path to the file to open on the filesystem.
+ * @param handle - The handle to the opened file.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 ProgramStatus open_file(char* file_path, FILE** handle);
 
+/**
+ * Filling the database with words from the given file.
+ * @param argv - Arguments received from the command line
+ * @param argc - Element count of argv
+ * @param seed - Output seed value received
+ * @param tweet_count - Output tweet count received
+ * @param word_count - Output word count received
+ * @return Error/Success, check with STATUS_FAILED
+ */
 ProgramStatus parse_command_line(
 	char** argv,
 	int argc,
 	unsigned int* seed,
 	unsigned int* tweet_count,
 	unsigned int* word_count
+);
+
+/**
+ * Filling the database with words from the given file.
+ * @param seed - The seed value to generate tweets with
+ * @param word_count - Maximal words to read from file
+ * @param tweet_count - Amount of tweets to generate
+ * @param file_path - Path to the file to read data from
+ * @return Error/Success, check with STATUS_FAILED
+ */
+ProgramStatus run_generator(
+	unsigned int seed,
+	unsigned int word_count,
+	unsigned int tweet_count,
+	char* file_path
 );
 
 // Function definitions
@@ -97,7 +171,7 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 
 	assert(NULL != out);
 
-	if (1 != sscanf(str, "%u", &result))
+	if (1 != sscanf(str, UNSIGNED_INT_FORMAT, &result))
 	{
 		return PROGRAM_STATUS_FAILED;
 	}
@@ -107,6 +181,7 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 	return PROGRAM_STATUS_SUCCESS;
 }
 
+// See documentation at function declaration
 ProgramStatus add_database_info(
 	char* word,
 	MarkovChain* markov_chain,
@@ -297,6 +372,7 @@ ProgramStatus parse_command_line(
 	return status;
 }
 
+// See documentation at function declaration
 ProgramStatus run_generator(
 	unsigned int seed, 
 	unsigned int word_count, 
