@@ -55,6 +55,28 @@ typedef struct MarkovChain
 {
 	LinkedList* database;
 
+    // pointer to a func that receives data from a generic type and prints it
+    // returns void.
+    /* <fill_type> */ print_func;
+
+    // pointer to a func that gets 2 pointers of generic data type(same one) and compare between them */
+    // returns: - a positive value if the first is bigger
+    //          - a negative value if the second is bigger
+    //          - 0 if equal
+    /* <fill_type> */ comp_func;
+
+    // a pointer to a function that gets a pointer of generic data type and frees it.
+    // returns void.
+    /*<fill_type>*/ free_data;
+
+    // a pointer to a function that  gets a pointer of generic data type and returns a newly allocated copy of it
+    // returns a generic pointer.
+    /*<fill_type>*/ copy_func;
+
+    //  a pointer to function that gets a pointer of generic data type and returns:
+    //      - true if it's the last state.
+    //      - false otherwise.
+    /*<fill_type>*/ is_last;
 } MarkovChain;
 
 // Foward declaration for MarkovNode
@@ -112,7 +134,7 @@ void create_markov_chain(MarkovChain** chain);
  * @return markov_node wrapping given data_ptr in given chain's
  *	database, returns NULL in case of memory allocation failure.
  */
-Node* add_to_database(MarkovChain *markov_chain, char *data_ptr);
+Node* add_to_database(MarkovChain *markov_chain, void* data_ptr);
 
 /**
  * Check if data_ptr is in database.
@@ -124,7 +146,7 @@ Node* add_to_database(MarkovChain *markov_chain, char *data_ptr);
  *	NULL if state not in database.
  */
 Node* get_node_from_database(
-	MarkovChain *markov_chain, char *data_ptr);
+	MarkovChain *markov_chain, void* data_ptr);
 
 /**
  * Getting a node from the linked list of the database
