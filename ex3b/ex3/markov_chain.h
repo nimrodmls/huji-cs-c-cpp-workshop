@@ -17,27 +17,29 @@
 
 // Macros
 
+#define GENERIC_FREE(func, ptr)	\
+{								\
+	if (NULL != (ptr))			\
+	{							\
+		func(ptr);				\
+		(ptr) = NULL;			\
+	}							\
+}
+
 /**
  * Macro for freeing memory allocations safetly
  */
-#define FREE_MEMORY(ptr)	\
-{							\
-	if (NULL != (ptr))		\
-	{						\
-		free(ptr);			\
-		(ptr) = NULL;			\
-	}						\
+#define FREE_MEMORY(ptr)		\
+{								\
+	GENERIC_FREE(free, (ptr));	\
 }
+
  /**
   * Macro for freeing the markov DB safetly
   */
-#define FREE_DATABASE(db_ptr)	\
-{								\
-	if (NULL != (db_ptr))			\
-	{							\
-		free_database(&(db_ptr));	\
-		(db_ptr) = NULL;			\
-	}							\
+#define FREE_DATABASE(db_ptr)				\
+{											\
+	GENERIC_FREE(free_database, db_ptr);	\
 }
 
 /**
@@ -48,6 +50,13 @@
 
 // Typedefs
 
+// Function callback types
+typedef void (* print_pfn)(void *);
+typedef int (* comp_pfn)(void*, void*);
+typedef void (* free_pfn)(void *);
+typedef void* (* copy_pfn)(void *);
+typedef bool (* is_last_pfn)(void *);
+
 /**
  * MarkovChain object struct
  */
@@ -57,26 +66,26 @@ typedef struct MarkovChain
 
     // pointer to a func that receives data from a generic type and prints it
     // returns void.
-    /* <fill_type> */ print_func;
+    print_pfn print_func;
 
     // pointer to a func that gets 2 pointers of generic data type(same one) and compare between them */
     // returns: - a positive value if the first is bigger
     //          - a negative value if the second is bigger
     //          - 0 if equal
-    /* <fill_type> */ comp_func;
+    comp_pfn comp_func;
 
     // a pointer to a function that gets a pointer of generic data type and frees it.
     // returns void.
-    /*<fill_type>*/ free_data;
+    free_pfn free_data;
 
     // a pointer to a function that  gets a pointer of generic data type and returns a newly allocated copy of it
     // returns a generic pointer.
-    /*<fill_type>*/ copy_func;
+    copy_pfn copy_func;
 
     //  a pointer to function that gets a pointer of generic data type and returns:
     //      - true if it's the last state.
     //      - false otherwise.
-    /*<fill_type>*/ is_last;
+    is_last_pfn is_last;
 } MarkovChain;
 
 // Foward declaration for MarkovNode
@@ -87,7 +96,7 @@ typedef struct MarkovNodeFrequency MarkovNodeFrequency;
  */
 typedef struct MarkovNode
 {
-	char* data;
+	void* data;
 	MarkovNodeFrequency* frequencies_list;
 	// The number of entries in the list
 	unsigned int list_len;
@@ -164,11 +173,14 @@ Node* get_node_from_database_index(
  * If already in list, update it's occurrence frequency value.
  * @param first_node - The node to add the second node as frequency
  * @param second_node - The node added to the first node's frequency
+ * @param markov_chain - The markov chain connected to the given node
  * @return success/failure: true if the process was successful,
  *	false if in case of allocation error.
  */
 bool add_node_to_frequencies_list(
-	MarkovNode *first_node, MarkovNode *second_node);
+	MarkovNode* first_node, 
+	MarkovNode* second_node,
+	MarkovChain* markov_chain);
 
 /**
  * Free markov_chain and all of it's content from memory

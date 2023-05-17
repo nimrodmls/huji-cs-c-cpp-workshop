@@ -131,7 +131,7 @@ cleanup:
 }
 
 // See documentation at header file
-Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
+Node* add_to_database(MarkovChain* markov_chain, void* data_ptr)
 {
 	Node* current_node = NULL;
 	MarkovNode* new_node = NULL;
@@ -154,15 +154,11 @@ Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
 		goto cleanup;
 	}
 
-	// Allocating memory for the word, including null terminator
-	new_node->data = (char*)calloc(
-		strlen(data_ptr)+1, sizeof(*data_ptr));
+	new_node->data = markov_chain->copy_func(data_ptr);
 	if (NULL == new_node->data)
 	{
-		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
 		goto cleanup;
 	}
-	(void)memcpy(new_node->data, data_ptr, strlen(data_ptr));
 	
 	if (0 != add(markov_chain->database, new_node))
 	{
@@ -175,6 +171,10 @@ Node* add_to_database(MarkovChain* markov_chain, char* data_ptr)
 	current_node = markov_chain->database->last;
 
 cleanup:
+	if (NULL != new_node)
+	{
+		GENERIC_FREE(markov_chain->free_data, new_node->data);
+	}
 	FREE_MEMORY(new_node);
 
 	return current_node;
@@ -182,7 +182,7 @@ cleanup:
 
 // See documentation at header file
 Node* get_node_from_database(
-	MarkovChain* markov_chain, char* data_ptr)
+	MarkovChain* markov_chain, void* data_ptr)
 {
 	Node* current_node = NULL;
 
@@ -191,7 +191,8 @@ Node* get_node_from_database(
 
 	current_node = markov_chain->database->first;
 	while ((NULL != current_node) &&
-		   (0 != strcmp(current_node->data->data, data_ptr)))
+		   (0 != markov_chain->comp_func(
+			   current_node->data, data_ptr)))
 	{
 		current_node = current_node->next;
 	}
@@ -224,7 +225,9 @@ Node* get_node_from_database_index(
 
 // See documentation at header file
 bool add_node_to_frequencies_list(
-	MarkovNode* first_node, MarkovNode* second_node)
+	MarkovNode* first_node, 
+	MarkovNode* second_node, 
+	MarkovChain* markov_chain)
 {
 	bool status = false;
 	unsigned int found_entry = 0;
@@ -280,7 +283,7 @@ void free_database(MarkovChain** ptr_chain)
 		if (NULL != current_node->data)
 		{
 			FREE_MEMORY(current_node->data->frequencies_list);
-			FREE_MEMORY(current_node->data->data);
+			(*ptr_chain)->free_data(current_node->data->data);
 		}
 		FREE_MEMORY(current_node->data);
 
@@ -307,8 +310,9 @@ MarkovNode* get_first_random_node(MarkovChain* markov_chain)
 	{
 		random_num =
 			get_random_number(markov_chain->database->size);
-		chosen_node = get_node_from_database_index(markov_chain, random_num)->data;
-	} while (is_str_endswith(chosen_node->data, SENTENCE_END_CHAR));
+		chosen_node = get_node_from_database_index(
+							markov_chain, random_num)->data;
+	} while (markov_chain->is_last(chosen_node->data));
 
 	return chosen_node;
 }
@@ -348,7 +352,6 @@ void generate_tweet(
 )
 {
 	MarkovNode* current_node = NULL;
-	char* tweet = NULL;
 	unsigned long actual_len = 0;
 
 	assert(NULL != markov_chain);
@@ -362,29 +365,12 @@ void generate_tweet(
 		current_node = first_node;
 	}
 
-	tweet = (char*)calloc(
-		max_length*MAX_WORD_LENGTH, sizeof(*tweet));
-	if (NULL == tweet)
-	{
-		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
-		goto cleanup;
-	}
-
-	(void)strcpy(tweet, current_node->data);
 	actual_len++;
-	while (!is_str_endswith(
-			current_node->data, SENTENCE_END_CHAR) && 
+	while (markov_chain->is_last(current_node->data) &&
 		   (actual_len < (unsigned int)max_length))
 	{
 		current_node = get_next_random_node(current_node);
-		// Manually spacing each word by appending a space char
-		(void)strcat(tweet, TWEET_WORD_SPACER);
-		(void)strcat(tweet, current_node->data);
+		markov_chain->print_func(current_node->data);
 		actual_len++;
 	}
-
-	(void)fprintf(stdout, TWEET_WORD_FORMAT, tweet);
-
-cleanup:
-	FREE_MEMORY(tweet);
 }
