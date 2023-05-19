@@ -1,4 +1,6 @@
 #include <string.h> // For strlen(), strcmp(), strcpy()
+#include <assert.h>
+
 #include "markov_chain.h"
 
 #define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
@@ -9,6 +11,10 @@
 
 #define DICE_MAX 6
 #define NUM_OF_TRANSITIONS 20
+#define USAGE_PROMPT ("Usage: ex3 (rand_seed) (route_count)")
+#define ROUTE_PROMPT ("Random Walk %lu:")
+// Simply a new line
+#define NEW_LINE_FORMAT ("\n")
 
 /**
  * represents the transitions by ladders and snakes in the game
@@ -35,6 +41,8 @@ const int transitions[][2] = {{13, 4},
                               {15, 47},
                               {61, 14}};
 
+// Typedefs
+
 /**
  * Command line arguments indices
  */
@@ -58,6 +66,9 @@ typedef enum ProgramStatus
 
 } ProgramStatus;
 
+// Checks if the given status indicates of a failure
+#define STATUS_FAILED(status) (PROGRAM_STATUS_SUCCESS != (status))
+
 /**
  * struct represents a Cell in the game board
  */
@@ -70,6 +81,18 @@ typedef struct Cell {
 
 // Function declarations
 
+/** Error handler **/
+static int handle_error(char* error_msg, MarkovChain** database);
+
+static int create_board(Cell* cells[BOARD_SIZE]);
+
+/**
+ * fills database
+ * @param markov_chain
+ * @return EXIT_SUCCESS or EXIT_FAILURE
+ */
+static int fill_database(MarkovChain* markov_chain);
+
 /**
  * Converting a string of numericals to an unsigned integer.
  * @param str - The string to convert.
@@ -78,9 +101,22 @@ typedef struct Cell {
  */
 static ProgramStatus str_to_uint(char* str, unsigned int* out);
 
+static ProgramStatus parse_command_line(
+    char** argv,
+    int argc,
+    unsigned int* seed,
+    unsigned int* route_count);
+
+static ProgramStatus create_database(MarkovChain** markov_chain);
+
+static ProgramStatus generate_route();
+
+static ProgramStatus run_generator(
+    unsigned int seed, unsigned int route_count);
+
 // Function definitions
 
-/** Error handler **/
+// See documentation at function declaration
 static int handle_error(char *error_msg, MarkovChain **database)
 {
     printf("%s", error_msg);
@@ -91,6 +127,7 @@ static int handle_error(char *error_msg, MarkovChain **database)
     return EXIT_FAILURE;
 }
 
+// See documentation at function declaration
 static int create_board(Cell *cells[BOARD_SIZE])
 {
     for (int i = 0; i < BOARD_SIZE; i++)
@@ -123,11 +160,7 @@ static int create_board(Cell *cells[BOARD_SIZE])
     return EXIT_SUCCESS;
 }
 
-/**
- * fills database
- * @param markov_chain
- * @return EXIT_SUCCESS or EXIT_FAILURE
- */
+// See documentation at function declaration
 static int fill_database(MarkovChain *markov_chain)
 {
     Cell* cells[BOARD_SIZE];
@@ -193,7 +226,111 @@ static ProgramStatus str_to_uint(char* str, unsigned int* out)
     return PROGRAM_STATUS_SUCCESS;
 }
 
+// See documentation at function declaration
+static ProgramStatus parse_command_line(
+    char** argv,
+    int argc,
+    unsigned int* seed,
+    unsigned int* route_count)
+{
+    ProgramStatus status = PROGRAM_STATUS_FAILED;
+
+    assert(NULL != argv);
+    assert(NULL != seed);
+    assert(NULL != route_count);
+
+    // Either in case of minimal / maximal arguments, the seed and
+    // tweet count are mandatory
+    status = str_to_uint(argv[ARGUMENT_SEED], seed);
+    if (STATUS_FAILED(status))
+    {
+        return status;
+    }
+
+    status = str_to_uint(argv[ARGUMENT_ROUTE_COUNT], route_count);
+    if (STATUS_FAILED(status))
+    {
+        return status;
+    }
+
+    status = PROGRAM_STATUS_SUCCESS;
+
+    return status;
+}
+
+// See documentation at function declaration
+static ProgramStatus create_database(MarkovChain** markov_chain)
+{
+    ProgramStatus status = PROGRAM_STATUS_FAILED;
+    MarkovChain* markov_db = NULL;
+
+    assert(NULL != markov_chain);
+
+    create_markov_chain(&markov_db);
+    if (NULL == markov_db)
+    {
+        return status;
+    }
+
+    // Assigning all function pointers
+    markov_db->copy_func = (copy_pfn)word_copy_callback;
+    markov_db->comp_func = (comp_pfn)strcmp;
+    markov_db->free_data = (free_pfn)free;
+    markov_db->is_last = (is_last_pfn)is_last_word_callback;
+    markov_db->print_func = (print_pfn)word_print_callback;
+
+    *markov_chain = markov_db;
+    markov_db = NULL;
+
+    status = PROGRAM_STATUS_SUCCESS;
+
+    return status;
+}
+
+// See documentation at function declaration
+static ProgramStatus generate_route()
+{
+
+}
+
+// See documentation at function declarations
+static ProgramStatus run_generator(
+    unsigned int seed, unsigned int route_count)
+{
+    ProgramStatus status = PROGRAM_STATUS_FAILED;
+    unsigned long index = 0;
+    MarkovChain* markov_db = NULL;
+
+    status = create_database(&markov_db);
+    if (STATUS_FAILED(status))
+    {
+        goto cleanup;
+    }
+
+    if (EXIT_FAILURE == fill_database(markov_db))
+    {
+        goto cleanup;
+    }
+
+    rand(seed); // Setting the seed before proceeding to 
+    // the randomized actions
+    for (index = 0; index < route_count; index++)
+    {
+        (void)fprintf(stdout, ROUTE_PROMPT, index + 1);
+        generate_route(markov_db, MAX_GENERATION_LENGTH);
+        (void)fprintf(stdout, NEW_LINE_FORMAT);
+    }
+
+    status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+    FREE_DATABASE(markov_db);
+
+    return status;
+}
+
 /**
+ * The main Snakes & Ladders program entrypoint
  * @param argc num of arguments
  * @param argv 1) Seed
  *             2) Number of sentences to generate
@@ -201,5 +338,30 @@ static ProgramStatus str_to_uint(char* str, unsigned int* out)
  */
 int main(int argc, char *argv[])
 {
+    ProgramStatus status = PROGRAM_STATUS_FAILED;
+    unsigned int seed = 0;
+    unsigned int route_count = 0;
 
+    if (MAX_ARGUMENTS != argc)
+    {
+        (void)fprintf(stdout, USAGE_PROMPT);
+        goto cleanup;
+    }
+
+    status = parse_command_line(argv, argc, &seed, &route_count);
+    if (STATUS_FAILED(status))
+    {
+        goto cleanup;
+    }
+
+    status = run_generator(seed, route_count);
+    if (STATUS_FAILED(status))
+    {
+        goto cleanup;
+    }
+
+    status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+    return status;
 }

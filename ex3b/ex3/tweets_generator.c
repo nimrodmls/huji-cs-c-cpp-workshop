@@ -539,6 +539,15 @@ cleanup:
 	return status;
 }
 
+/**
+ * The main tweets generator program entrypoint
+ * @param argc num of arguments
+ * @param argv 1) Seed
+ *             2) Number of tweets to generate
+ *			   3) Input file path
+ *			   4) Maximal words to read from file
+ * @return EXIT_SUCCESS or EXIT_FAILURE
+ */
 int main(int argc, char** argv)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
