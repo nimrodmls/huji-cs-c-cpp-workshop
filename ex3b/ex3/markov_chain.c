@@ -3,11 +3,6 @@
 
 #include "markov_chain.h"
 
-// Constants
-#define MAX_WORD_LENGTH (100)
-#define TWEET_WORD_SPACER (" ")
-#define TWEET_WORD_FORMAT ("%s\n")
-
 // Function declarations
 
 /**
@@ -29,24 +24,6 @@ bool update_frequencies_list(
 int get_random_number(int max_number);
 
 // Function definitions
-
-// See documentation at function declaration
-int is_str_endswith(char* str, char ch)
-{
-	assert(NULL != str);
-
-	if (0 == strlen(str))
-	{
-		return 0;
-	}
-
-	if (ch != str[strlen(str) - 1])
-	{
-		return 0;
-	}
-
-	return 1;
-}
 
 // See documentation at declaration
 int get_random_number(int max_number)
@@ -365,8 +342,10 @@ void generate_tweet(
 		current_node = first_node;
 	}
 
+	markov_chain->print_func(current_node->data);
 	actual_len++;
-	while (markov_chain->is_last(current_node->data) &&
+
+	while (!markov_chain->is_last(current_node->data) &&
 		   (actual_len < (unsigned int)max_length))
 	{
 		current_node = get_next_random_node(current_node);

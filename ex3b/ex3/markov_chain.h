@@ -119,15 +119,6 @@ typedef struct MarkovNodeFrequency
 // Functions
 
 /**
- * Checking if the given string has the given char as 
- * the last character in the string
- * @param str - The string to check
- * @param ch - The character to find at the end
- * @return 0 if it doesn't end with the given character, 1 otherwise
- */
-int is_str_endswith(char* str, char ch);
-
-/**
  * Creating a blank Markov Chain
  * Must call FREE_DATABASE after upon valid ptr returned 
  * in chain param

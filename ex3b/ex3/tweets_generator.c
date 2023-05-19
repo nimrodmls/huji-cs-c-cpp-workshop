@@ -12,7 +12,11 @@
 #define OPEN_FILE_ERROR_PROMPT \
 	("Error: Failed to open input text corpus file")
 // Format to print a tweet
-#define TWEET_PROMPT ("Tweet %lu: ")
+#define TWEET_PROMPT ("Tweet %lu:")
+// Format to print a single word in a tweet
+#define TWEET_WORD_FORMAT (" %s")
+// Simply a new line
+#define NEW_LINE_FORMAT ("\n")
 // Minimal argument count, defined outside the enum on purpose
 #define MIN_ARGUMENTS (4)
 // Maximal amount of characters found in a sentence
@@ -71,12 +75,27 @@ typedef enum ProgramStatus
 // Function declarations
 
 /**
+ * Checking if the given string has the given char as
+ * the last character in the string
+ * @param str - The string to check
+ * @param ch - The character to find at the end
+ * @return 0 if it doesn't end with the given character, 1 otherwise
+ */
+static int is_str_endswith(char* str, char ch);
+
+static char* word_copy_callback(char* word);
+
+static bool is_last_word_callback(char* word);
+
+static void word_print_callback(char* word);
+
+/**
  * Converting a string of numericals to an unsigned integer.
  * @param str - The string to convert.
  * @param out - The converted output unsigned integer.
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus str_to_uint(char* str, unsigned int* out);
+static ProgramStatus str_to_uint(char* str, unsigned int* out);
 
 /**
  * Adding word along with its necessary information to the DB.
@@ -86,7 +105,7 @@ ProgramStatus str_to_uint(char* str, unsigned int* out);
  * @param previous_node - The node of the previous word.
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus add_database_info(
+static ProgramStatus add_database_info(
 	char* word,
 	MarkovChain* markov_chain,
 	Node** current_node,
@@ -105,7 +124,7 @@ ProgramStatus add_database_info(
  *		Specify INFINITE_WORD_COUNT to read without any limit.
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus database_process_sentence(
+static ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
 	unsigned int* current_word_count,
@@ -119,7 +138,7 @@ ProgramStatus database_process_sentence(
  * @param markov_chain - Handle to the Markov Chain to data to.
  * @return Error/Success, check with STATUS_FAILED
  */
-int fill_database(
+static int fill_database(
 	FILE* fp, int words_to_read, MarkovChain* markov_chain);
 
 /**
@@ -128,7 +147,7 @@ int fill_database(
  * @param handle - The handle to the opened file.
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus open_file(char* file_path, FILE** handle);
+static ProgramStatus open_file(char* file_path, FILE** handle);
 
 /**
  * Filling the database with words from the given file.
@@ -139,13 +158,15 @@ ProgramStatus open_file(char* file_path, FILE** handle);
  * @param word_count - Output word count received
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus parse_command_line(
+static ProgramStatus parse_command_line(
 	char** argv,
 	int argc,
 	unsigned int* seed,
 	unsigned int* tweet_count,
 	unsigned int* word_count
 );
+
+static ProgramStatus create_database(MarkovChain** markov_chain);
 
 /**
  * Filling the database with words from the given file.
@@ -155,7 +176,7 @@ ProgramStatus parse_command_line(
  * @param file_path - Path to the file to read data from
  * @return Error/Success, check with STATUS_FAILED
  */
-ProgramStatus run_generator(
+static ProgramStatus run_generator(
 	unsigned int seed,
 	unsigned int word_count,
 	unsigned int tweet_count,
@@ -165,7 +186,72 @@ ProgramStatus run_generator(
 // Function definitions
 
 // See documentation at function declaration
-ProgramStatus str_to_uint(char* str, unsigned int* out)
+static int is_str_endswith(char* str, char ch)
+{
+	assert(NULL != str);
+
+	if (0 == strlen(str))
+	{
+		return 0;
+	}
+
+	if (ch != str[strlen(str) - 1])
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+// See documentation at function declaration
+static char* word_copy_callback(char* word)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	char* new_word = NULL;
+	size_t word_len = 0;
+
+	assert(NULL != word);
+
+	word_len = strlen(word);
+
+	new_word = (char*)calloc(word_len + 1, sizeof(*word));
+	if (NULL == new_word)
+	{
+		(void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+		goto cleanup;
+	}
+
+	memcpy(new_word, word, word_len);
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+	if (STATUS_FAILED(status))
+	{
+		FREE_MEMORY(new_word);
+	}
+
+	return new_word;
+}
+
+// See documentation at function declaration
+static bool is_last_word_callback(char* word)
+{
+	assert(NULL != word);
+
+	return is_str_endswith(word, SENTENCE_END_CHAR);
+}
+
+// See documentation at function declaration
+static void word_print_callback(char* word)
+{
+	assert(NULL != word);
+
+	(void)fprintf(stdout, TWEET_WORD_FORMAT, word);
+}
+
+// See documentation at function declaration
+static ProgramStatus str_to_uint(char* str, unsigned int* out)
 {
 	unsigned int result = 0;
 
@@ -182,7 +268,7 @@ ProgramStatus str_to_uint(char* str, unsigned int* out)
 }
 
 // See documentation at function declaration
-ProgramStatus add_database_info(
+static ProgramStatus add_database_info(
 	char* word,
 	MarkovChain* markov_chain,
 	Node** current_node,
@@ -204,7 +290,7 @@ ProgramStatus add_database_info(
 	if (NULL != previous_node)
 	{
 		if (!add_node_to_frequencies_list(
-			previous_node->data, local_node->data))
+			previous_node->data, local_node->data, markov_chain))
 		{
 			return status;
 		}
@@ -217,7 +303,7 @@ ProgramStatus add_database_info(
 }
 
 // See documentation at function declaration
-ProgramStatus database_process_sentence(
+static ProgramStatus database_process_sentence(
 	char* sentence,
 	MarkovChain* markov_chain,
 	unsigned int* current_word_count,
@@ -269,7 +355,7 @@ ProgramStatus database_process_sentence(
 }
 
 // See documentation at function declaration
-int fill_database(
+static int fill_database(
 	FILE* fp, int words_to_read, MarkovChain* markov_chain)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
@@ -298,7 +384,7 @@ int fill_database(
 }
 
 // See documentation at function declaration
-ProgramStatus open_file(char* file_path, FILE** handle)
+static ProgramStatus open_file(char* file_path, FILE** handle)
 {
 	ProgramStatus status = PROGRAM_STATUS_FAILED;
 	FILE* file_handle = NULL;
@@ -326,7 +412,7 @@ cleanup:
 }
 
 // See documentation at function declaration
-ProgramStatus parse_command_line(
+static ProgramStatus parse_command_line(
 	char** argv,
 	int argc,
 	unsigned int* seed,
@@ -373,7 +459,36 @@ ProgramStatus parse_command_line(
 }
 
 // See documentation at function declaration
-ProgramStatus run_generator(
+static ProgramStatus create_database(MarkovChain** markov_chain)
+{
+	ProgramStatus status = PROGRAM_STATUS_FAILED;
+	MarkovChain* markov_db = NULL;
+
+	assert(NULL != markov_chain);
+
+	create_markov_chain(&markov_db);
+	if (NULL == markov_db)
+	{
+		return status;
+	}
+
+	// Assigning all function pointers
+	markov_db->copy_func = (copy_pfn)word_copy_callback;
+	markov_db->comp_func = (comp_pfn)strcmp;
+	markov_db->free_data = (free_pfn)free;
+	markov_db->is_last = (is_last_pfn)is_last_word_callback;
+	markov_db->print_func = (print_pfn)word_print_callback;
+
+	*markov_chain = markov_db;
+	markov_db = NULL;
+
+	status = PROGRAM_STATUS_SUCCESS;
+
+	return status;
+}
+
+// See documentation at function declaration
+static ProgramStatus run_generator(
 	unsigned int seed, 
 	unsigned int word_count, 
 	unsigned int tweet_count, 
@@ -392,8 +507,8 @@ ProgramStatus run_generator(
 		goto cleanup;
 	}
 
-	create_markov_chain(&markov_db);
-	if (NULL == markov_db)
+	status = create_database(&markov_db);
+	if (STATUS_FAILED(status))
 	{
 		goto cleanup;
 	}
@@ -412,6 +527,7 @@ ProgramStatus run_generator(
 	{
 		(void)fprintf(stdout, TWEET_PROMPT, index + 1);
 		generate_tweet(markov_db, NULL, TWEET_MAX_WORD_COUNT);
+		(void)fprintf(stdout, NEW_LINE_FORMAT);
 	}
 
 	status = PROGRAM_STATUS_SUCCESS;

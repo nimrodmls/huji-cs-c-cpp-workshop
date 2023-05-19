@@ -36,6 +36,29 @@ const int transitions[][2] = {{13, 4},
                               {61, 14}};
 
 /**
+ * Command line arguments indices
+ */
+typedef enum CommandArguments
+{
+    ARGUMENT_EXECUTABLE = 0,
+    ARGUMENT_SEED,
+    ARGUMENT_ROUTE_COUNT,
+
+    MAX_ARGUMENTS
+
+} CommandArguments;
+
+/**
+ * Exit statuses for error indication
+ */
+typedef enum ProgramStatus
+{
+    PROGRAM_STATUS_SUCCESS = EXIT_SUCCESS,
+    PROGRAM_STATUS_FAILED = EXIT_FAILURE
+
+} ProgramStatus;
+
+/**
  * struct represents a Cell in the game board
  */
 typedef struct Cell {
@@ -44,6 +67,18 @@ typedef struct Cell {
     int snake_to;  // snake_to represents the jump of the snake in case there is one from this square
     //both ladder_to and snake_to should be -1 if the Cell doesn't have them
 } Cell;
+
+// Function declarations
+
+/**
+ * Converting a string of numericals to an unsigned integer.
+ * @param str - The string to convert.
+ * @param out - The converted output unsigned integer.
+ * @return Error/Success, check with STATUS_FAILED
+ */
+static ProgramStatus str_to_uint(char* str, unsigned int* out);
+
+// Function definitions
 
 /** Error handler **/
 static int handle_error(char *error_msg, MarkovChain **database)
@@ -55,7 +90,6 @@ static int handle_error(char *error_msg, MarkovChain **database)
     }
     return EXIT_FAILURE;
 }
-
 
 static int create_board(Cell *cells[BOARD_SIZE])
 {
@@ -140,6 +174,23 @@ static int fill_database(MarkovChain *markov_chain)
         free(cells[i]);
     }
     return EXIT_SUCCESS;
+}
+
+// See documentation at function declaration
+static ProgramStatus str_to_uint(char* str, unsigned int* out)
+{
+    unsigned int result = 0;
+
+    assert(NULL != out);
+
+    if (1 != sscanf(str, UNSIGNED_INT_FORMAT, &result))
+    {
+        return PROGRAM_STATUS_FAILED;
+    }
+
+    *out = result;
+
+    return PROGRAM_STATUS_SUCCESS;
 }
 
 /**
