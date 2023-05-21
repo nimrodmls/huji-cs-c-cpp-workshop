@@ -3,19 +3,30 @@
 
 #include "markov_chain.h"
 
+// Retrieves the maximum of 2 numbers
 #define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
 
+// Default for empty Snake/Ladder value
 #define EMPTY -1
+// Size of Snakes and Ladders Game Board
 #define BOARD_SIZE 100
+// Maximal length of a route on the board
 #define MAX_GENERATION_LENGTH 60
-
+// The maximal values for a dice roll
 #define DICE_MAX 6
+// Transition count on the board (Snake/Ladder)
 #define NUM_OF_TRANSITIONS 20
+// Prompt for the user, shown on invalid command line
 #define USAGE_PROMPT ("Usage: ex3 (rand_seed) (route_count)\n")
+// Initial prompt for a route
 #define ROUTE_PROMPT ("Random Walk %lu: ")
+// Print format for a ladder transition in a route
 #define LADDER_PRINT_FORMAT ("[%d]-ladder to %d -> ")
+// Print format for a snake transition in a route
 #define SNAKE_PRINT_FORMAT ("[%d]-snake to %d -> ")
+// Print format for regular board movement
 #define NORMAL_PRINT_FORMAT ("[%d] -> ")
+// Print format for the last movement on a board
 #define END_PRINT_FORMAT ("[%d]")
 // Simply a new line
 #define NEW_LINE_FORMAT ("\n")
@@ -24,7 +35,8 @@
 
 /**
  * represents the transitions by ladders and snakes in the game
- * each tuple (x,y) represents a ladder from x to if x<y or a snake otherwise
+ * each tuple (x,y) represents a ladder from 
+ * x to if x<y or a snake otherwise
  */
 const int transitions[][2] = {{13, 4},
                               {85, 17},
@@ -92,17 +104,50 @@ typedef struct Cell {
 
 // Function declarations
 
+/**
+ * Callback for the Markov Chain to handle printing of a route step
+ * @param cell - The cell which we moved onto
+ */
 static void cell_print_callback(Cell* cell);
 
+/**
+ * Callback for the Markov Chain to handle comparison of 2 cells
+ * @param cell_1 - Cell to compare to cell_2
+ * @param cell_1 - Cell to compare to cell_1
+ * @return 0 if equal
+        > 1 if cell_1 is larger
+        < 1 if cell_1 is smaller
+ */
 static int cell_compare_callback(Cell* cell_1, Cell* cell_2);
 
+/**
+ * Copying a cell to a new memory block
+ * @param cell - The cell to copy
+ * @return The new allocated cell, IT MUST BE FREED USING
+ *      THE FREE CALLBACK!
+ */
 static Cell* cell_copy_callback(Cell* cell);
 
+/**
+ * Checking if the given cell is indicated as a last cell
+ * @param cell - The cell to check
+ * @return true on last, false otherwise
+ */
 static bool is_last_cell_callback(Cell* cell);
 
-/** Error handler **/
+/**
+ * Handles some errors idk
+ * @param error_msg - Stuff
+ * @param database - The markov chain database
+ * @return EXIT_SUCCESS or EXIT_FAILURE
+ */
 static int handle_error(char* error_msg, MarkovChain** database);
 
+/**
+ * Creates a new empty game board
+ * @param cells - The cells map
+ * @return EXIT_SUCCESS or EXIT_FAILURE
+ */
 static int create_board(Cell* cells[BOARD_SIZE]);
 
 /**
@@ -120,17 +165,33 @@ static int fill_database(MarkovChain* markov_chain);
  */
 static ProgramStatus str_to_uint(char* str, unsigned int* out);
 
+/**
+ * Parsing the given command line and giving out the parameters
+ * @param argv - The given parameters, expects AT LEAST 3 VALUES
+ * @param seed - The seed value given in the command line
+ * @param route_count - The amount of routes to generate given
+ *      in the command line.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 static ProgramStatus parse_command_line(
     char** argv,
     unsigned int* seed,
     unsigned int* route_count);
 
+/**
+ * Creates a blank new Markov Chain database and sets its callbacks
+ * @param markov_chain - The created markov chain, must be released
+ *      with FREE_DATABASE upon success.
+ * @return Error/Success, check with STATUS_FAILED
+ */
 static ProgramStatus create_database(MarkovChain** markov_chain);
 
-static void generate_route(
-    MarkovChain* markov_chain,
-    int max_length);
-
+/**
+ * Runs the route generator for Snakes and Ladders game
+ * @param seed - The randomization seed
+ * @param route_count - Amount of routes to generate
+ * @return Error/Success, check with STATUS_FAILED
+ */
 static ProgramStatus run_generator(
     unsigned int seed, unsigned int route_count);
 
@@ -381,29 +442,6 @@ static ProgramStatus create_database(MarkovChain** markov_chain)
     return status;
 }
 
-// See documentation at function declaration
-static void generate_route(
-    MarkovChain* markov_chain,
-    int max_length)
-{
-    MarkovNode* current_node = NULL;
-    unsigned long actual_len = 0;
-
-    assert(NULL != markov_chain);
-
-    current_node = markov_chain->database->first->data;
-    markov_chain->print_func(current_node->data);
-    actual_len++;
-
-    while (!markov_chain->is_last(current_node->data) &&
-        (actual_len < (unsigned int)max_length))
-    {
-        current_node = get_next_random_node(current_node);
-        markov_chain->print_func(current_node->data);
-        actual_len++;
-    }
-}
-
 // See documentation at function declarations
 static ProgramStatus run_generator(
     unsigned int seed, unsigned int route_count)
@@ -428,7 +466,10 @@ static ProgramStatus run_generator(
     for (index = 0; index < route_count; index++)
     {
         (void)fprintf(stdout, ROUTE_PROMPT, index + 1);
-        generate_route(markov_db, MAX_GENERATION_LENGTH);
+        generate_tweet(
+            markov_db, 
+            markov_db->database->first->data, 
+            MAX_GENERATION_LENGTH);
         (void)fprintf(stdout, NEW_LINE_FORMAT);
     }
 
@@ -459,7 +500,7 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    status = parse_command_line(argv, argc, &seed, &route_count);
+    status = parse_command_line(argv, &seed, &route_count);
     if (STATUS_FAILED(status))
     {
         goto cleanup;

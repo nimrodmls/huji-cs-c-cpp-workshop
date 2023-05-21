@@ -83,10 +83,24 @@ typedef enum ProgramStatus
  */
 static int is_str_endswith(char* str, char ch);
 
+/**
+ * Copying a single word data to new memory
+ * @param word - The word to copy
+ * @return The new word memory, must be freed using the free callback
+ */
 static char* word_copy_callback(char* word);
 
+/**
+ * Checking if a word is considered 'last' (e.g. ends a sentence)
+ * @param word - The word to check
+ * @return true on last, false otherwise
+ */
 static bool is_last_word_callback(char* word);
 
+/**
+ * Printing a single word in a sentence
+ * @param word - The word to print
+ */
 static void word_print_callback(char* word);
 
 /**
@@ -166,6 +180,11 @@ static ProgramStatus parse_command_line(
 	unsigned int* word_count
 );
 
+/**
+ * Creating a blank new Markov Chain database, setting the callbacks
+ * @param markov_chain - The markov chain created
+ * @return Error/Success, check with STATUS_FAILED
+ */
 static ProgramStatus create_database(MarkovChain** markov_chain);
 
 /**
