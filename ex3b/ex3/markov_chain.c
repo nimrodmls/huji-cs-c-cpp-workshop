@@ -169,7 +169,7 @@ Node* get_node_from_database(
 	current_node = markov_chain->database->first;
 	while ((NULL != current_node) &&
 		   (0 != markov_chain->comp_func(
-			   current_node->data, data_ptr)))
+			   current_node->data->data, data_ptr)))
 	{
 		current_node = current_node->next;
 	}

@@ -37,9 +37,13 @@
  /**
   * Macro for freeing the markov DB safetly
   */
-#define FREE_DATABASE(db_ptr)				\
-{											\
-	GENERIC_FREE(free_database, db_ptr);	\
+#define FREE_DATABASE(db_ptr)	\
+{								\
+	if (NULL != (db_ptr))		\
+	{							\
+		free_database(&db_ptr);	\
+		(db_ptr) = NULL;		\
+	}							\
 }
 
 /**

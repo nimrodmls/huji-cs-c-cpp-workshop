@@ -12,9 +12,15 @@
 #define DICE_MAX 6
 #define NUM_OF_TRANSITIONS 20
 #define USAGE_PROMPT ("Usage: ex3 (rand_seed) (route_count)")
-#define ROUTE_PROMPT ("Random Walk %lu:")
+#define ROUTE_PROMPT ("Random Walk %lu: ")
+#define LADDER_PRINT_FORMAT ("[%d]-ladder to %d->")
+#define SNAKE_PRINT_FORMAT ("[%d]-snake to %d->")
+#define NORMAL_PRINT_FORMAT ("[%d]->")
+#define END_PRINT_FORMAT ("[%d]")
 // Simply a new line
 #define NEW_LINE_FORMAT ("\n")
+// Format for converstion from string to uint
+#define UNSIGNED_INT_FORMAT ("%u")
 
 /**
  * represents the transitions by ladders and snakes in the game
@@ -81,6 +87,14 @@ typedef struct Cell {
 
 // Function declarations
 
+static void cell_print_callback(Cell* cell);
+
+static int cell_compare_callback(Cell* cell_1, Cell* cell_2);
+
+static Cell* cell_copy_callback(Cell* cell);
+
+static bool is_last_cell_callback(Cell* cell);
+
 /** Error handler **/
 static int handle_error(char* error_msg, MarkovChain** database);
 
@@ -109,12 +123,87 @@ static ProgramStatus parse_command_line(
 
 static ProgramStatus create_database(MarkovChain** markov_chain);
 
-static ProgramStatus generate_route();
+static void generate_route(
+    MarkovChain* markov_chain,
+    int max_length);
 
 static ProgramStatus run_generator(
     unsigned int seed, unsigned int route_count);
 
 // Function definitions
+
+// See documentation at function declaration
+static void cell_print_callback(Cell* cell)
+{
+    assert(NULL != cell);
+
+    if (EMPTY != cell->ladder_to) // There is a ladder
+    {
+        (void)fprintf(
+            stdout, LADDER_PRINT_FORMAT, 
+            cell->number, cell->ladder_to);
+    }
+    else if (EMPTY != cell->snake_to) // There is a Snake
+    {
+        (void)fprintf(
+            stdout, SNAKE_PRINT_FORMAT, 
+            cell->number, cell->snake_to);
+    }
+    else // It's a normal cell
+    {
+        if (BOARD_SIZE == cell->number)
+        {
+            (void)fprintf(stdout, END_PRINT_FORMAT, cell->number);
+        }
+        else
+        {
+            (void)fprintf(stdout, NORMAL_PRINT_FORMAT, cell->number);
+        }
+    }
+}
+
+// See documentation at function declaration
+static int cell_compare_callback(Cell* cell_1, Cell* cell_2)
+{
+    assert(NULL != cell_1);
+    assert(NULL != cell_2);
+    
+    return cell_1->number - cell_2->number;
+}
+
+// See documentation at function declaration
+static Cell* cell_copy_callback(Cell* cell)
+{
+    ProgramStatus status = PROGRAM_STATUS_FAILED;
+    Cell* new_cell = NULL;
+
+    assert(NULL != cell);
+
+    new_cell = (Cell*)calloc(1, sizeof(*cell));
+    if (NULL == new_cell)
+    {
+        (void)fprintf(stdout, ALLOCATION_ERROR_MASSAGE);
+        goto cleanup;
+    }
+
+    memcpy(new_cell, cell, sizeof(*cell));
+
+    status = PROGRAM_STATUS_SUCCESS;
+
+cleanup:
+    if (STATUS_FAILED(status))
+    {
+        FREE_MEMORY(new_cell);
+    }
+
+    return new_cell;
+}
+
+// See documentation at function declaration
+static bool is_last_cell_callback(Cell* cell)
+{
+    return cell->number == BOARD_SIZE;
+}
 
 // See documentation at function declaration
 static int handle_error(char *error_msg, MarkovChain **database)
@@ -273,11 +362,11 @@ static ProgramStatus create_database(MarkovChain** markov_chain)
     }
 
     // Assigning all function pointers
-    markov_db->copy_func = (copy_pfn)word_copy_callback;
-    markov_db->comp_func = (comp_pfn)strcmp;
+    markov_db->copy_func = (copy_pfn)cell_copy_callback;
+    markov_db->comp_func = (comp_pfn)cell_compare_callback;
     markov_db->free_data = (free_pfn)free;
-    markov_db->is_last = (is_last_pfn)is_last_word_callback;
-    markov_db->print_func = (print_pfn)word_print_callback;
+    markov_db->is_last = (is_last_pfn)is_last_cell_callback;
+    markov_db->print_func = (print_pfn)cell_print_callback;
 
     *markov_chain = markov_db;
     markov_db = NULL;
@@ -288,9 +377,26 @@ static ProgramStatus create_database(MarkovChain** markov_chain)
 }
 
 // See documentation at function declaration
-static ProgramStatus generate_route()
+static void generate_route(
+    MarkovChain* markov_chain,
+    int max_length)
 {
+    MarkovNode* current_node = NULL;
+    unsigned long actual_len = 0;
 
+    assert(NULL != markov_chain);
+
+    current_node = markov_chain->database->first->data;
+    markov_chain->print_func(current_node->data);
+    actual_len++;
+
+    while (!markov_chain->is_last(current_node->data) &&
+        (actual_len < (unsigned int)max_length))
+    {
+        current_node = get_next_random_node(current_node);
+        markov_chain->print_func(current_node->data);
+        actual_len++;
+    }
 }
 
 // See documentation at function declarations
@@ -312,7 +418,7 @@ static ProgramStatus run_generator(
         goto cleanup;
     }
 
-    rand(seed); // Setting the seed before proceeding to 
+    srand(seed); // Setting the seed before proceeding to 
     // the randomized actions
     for (index = 0; index < route_count; index++)
     {
