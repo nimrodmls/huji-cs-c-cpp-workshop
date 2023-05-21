@@ -333,27 +333,34 @@ static int fill_database(MarkovChain *markov_chain)
 
     for (size_t i = 0; i < BOARD_SIZE; i++)
     {
-        from_node = get_node_from_database(markov_chain,cells[i])->data;
+        from_node = 
+            get_node_from_database(markov_chain,cells[i])->data;
 
-        if (cells[i]->snake_to != EMPTY || cells[i]->ladder_to != EMPTY)
+        if (cells[i]->snake_to != EMPTY || 
+            cells[i]->ladder_to != EMPTY)
         {
-            index_to = MAX(cells[i]->snake_to,cells[i]->ladder_to) - 1;
-            to_node = get_node_from_database(markov_chain, cells[index_to])
-                    ->data;
-            add_node_to_frequencies_list (from_node, to_node, markov_chain);
+            index_to = 
+                MAX(cells[i]->snake_to,cells[i]->ladder_to) - 1;
+            to_node = get_node_from_database(
+                markov_chain, cells[index_to])->data;
+            add_node_to_frequencies_list (
+                from_node, to_node, markov_chain);
         }
         else
         {
             for (int j = 1; j <= DICE_MAX; j++)
             {
-                index_to = ((Cell*) (from_node->data))->number + j - 1;
+                index_to = 
+                    ((Cell*) (from_node->data))->number + j - 1;
                 if (index_to >= BOARD_SIZE)
                 {
                     break;
                 }
-                to_node = get_node_from_database(markov_chain, cells[index_to])
-                        ->data;
-                add_node_to_frequencies_list (from_node, to_node, markov_chain);
+                to_node = 
+                    get_node_from_database(
+                        markov_chain, cells[index_to])->data;
+                add_node_to_frequencies_list (
+                    from_node, to_node, markov_chain);
             }
         }
     }
