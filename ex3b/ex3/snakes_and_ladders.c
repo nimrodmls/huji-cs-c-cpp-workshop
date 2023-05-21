@@ -11,11 +11,11 @@
 
 #define DICE_MAX 6
 #define NUM_OF_TRANSITIONS 20
-#define USAGE_PROMPT ("Usage: ex3 (rand_seed) (route_count)")
+#define USAGE_PROMPT ("Usage: ex3 (rand_seed) (route_count)\n")
 #define ROUTE_PROMPT ("Random Walk %lu: ")
-#define LADDER_PRINT_FORMAT ("[%d]-ladder to %d->")
-#define SNAKE_PRINT_FORMAT ("[%d]-snake to %d->")
-#define NORMAL_PRINT_FORMAT ("[%d]->")
+#define LADDER_PRINT_FORMAT ("[%d]-ladder to %d -> ")
+#define SNAKE_PRINT_FORMAT ("[%d]-snake to %d -> ")
+#define NORMAL_PRINT_FORMAT ("[%d] -> ")
 #define END_PRINT_FORMAT ("[%d]")
 // Simply a new line
 #define NEW_LINE_FORMAT ("\n")
