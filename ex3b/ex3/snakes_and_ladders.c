@@ -80,9 +80,14 @@ typedef enum ProgramStatus
  */
 typedef struct Cell {
     int number; // Cell number 1-100
-    int ladder_to;  // ladder_to represents the jump of the ladder in case there is one from this square
-    int snake_to;  // snake_to represents the jump of the snake in case there is one from this square
-    //both ladder_to and snake_to should be -1 if the Cell doesn't have them
+    // ladder_to represents the jump of the ladder 
+    // in case there is one from this square
+    int ladder_to;
+    // snake_to represents the jump of the snake in
+    // case there is one from this square
+    int snake_to;
+    //both ladder_to and snake_to should be -1 
+    // if the Cell doesn't have them
 } Cell;
 
 // Function declarations
@@ -117,7 +122,6 @@ static ProgramStatus str_to_uint(char* str, unsigned int* out);
 
 static ProgramStatus parse_command_line(
     char** argv,
-    int argc,
     unsigned int* seed,
     unsigned int* route_count);
 
@@ -202,6 +206,8 @@ cleanup:
 // See documentation at function declaration
 static bool is_last_cell_callback(Cell* cell)
 {
+    assert(NULL != cell);
+
     return cell->number == BOARD_SIZE;
 }
 
@@ -318,7 +324,6 @@ static ProgramStatus str_to_uint(char* str, unsigned int* out)
 // See documentation at function declaration
 static ProgramStatus parse_command_line(
     char** argv,
-    int argc,
     unsigned int* seed,
     unsigned int* route_count)
 {

@@ -68,25 +68,28 @@ typedef struct MarkovChain
 {
 	LinkedList* database;
 
-    // pointer to a func that receives data from a generic type and prints it
-    // returns void.
+    // pointer to a func that receives data from a 
+	// generic type and prints it. returns void.
     print_pfn print_func;
 
-    // pointer to a func that gets 2 pointers of generic data type(same one) and compare between them */
+    // pointer to a func that gets 2 pointers of generic 
+	// data type(same one) and compare between them
     // returns: - a positive value if the first is bigger
     //          - a negative value if the second is bigger
     //          - 0 if equal
     comp_pfn comp_func;
 
-    // a pointer to a function that gets a pointer of generic data type and frees it.
-    // returns void.
+    // a pointer to a function that gets a pointer of 
+	// generic data type and frees it. returns void.
     free_pfn free_data;
 
-    // a pointer to a function that  gets a pointer of generic data type and returns a newly allocated copy of it
-    // returns a generic pointer.
+    // a pointer to a function that  gets a pointer of generic data
+	// type and returns a newly allocated copy of it 
+	// returns a generic pointer.
     copy_pfn copy_func;
 
-    //  a pointer to function that gets a pointer of generic data type and returns:
+    //  a pointer to function that gets a pointer of generic 
+	//  data type and returns:
     //      - true if it's the last state.
     //      - false otherwise.
     is_last_pfn is_last;

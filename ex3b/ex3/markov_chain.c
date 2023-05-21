@@ -211,6 +211,7 @@ bool add_node_to_frequencies_list(
 
 	assert(NULL != first_node);
 	assert(NULL != second_node);
+	assert(NULL != markov_chain);
 
 	// First we look up the second node in the frequencies list
 	while ((found_entry < first_node->list_len) &&
