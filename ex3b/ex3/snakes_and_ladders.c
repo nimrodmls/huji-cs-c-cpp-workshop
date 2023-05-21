@@ -151,6 +151,15 @@ static int handle_error(char* error_msg, MarkovChain** database);
 static int create_board(Cell* cells[BOARD_SIZE]);
 
 /**
+ * Initializes some stuff in the database with the board
+ * @param markov_chain - The chain to initialize
+ * @param cells - The cells map
+ */
+static void initialize_board(
+    MarkovChain* markov_chain,
+    Cell** cells);
+
+/**
  * fills database
  * @param markov_chain
  * @return EXIT_SUCCESS or EXIT_FAILURE
@@ -317,6 +326,48 @@ static int create_board(Cell *cells[BOARD_SIZE])
 }
 
 // See documentation at function declaration
+static void initialize_board(
+    MarkovChain* markov_chain,
+    Cell** cells)
+{
+    MarkovNode* from_node = NULL, * to_node = NULL;
+    size_t index_to;
+    for (size_t i = 0; i < BOARD_SIZE; i++)
+    {
+        from_node =
+            get_node_from_database(markov_chain, cells[i])->data;
+
+        if (cells[i]->snake_to != EMPTY ||
+            cells[i]->ladder_to != EMPTY)
+        {
+            index_to =
+                MAX(cells[i]->snake_to, cells[i]->ladder_to) - 1;
+            to_node = get_node_from_database(
+                markov_chain, cells[index_to])->data;
+            add_node_to_frequencies_list(
+                from_node, to_node, markov_chain);
+        }
+        else
+        {
+            for (int j = 1; j <= DICE_MAX; j++)
+            {
+                index_to =
+                    ((Cell*)(from_node->data))->number + j - 1;
+                if (index_to >= BOARD_SIZE)
+                {
+                    break;
+                }
+                to_node =
+                    get_node_from_database(
+                        markov_chain, cells[index_to])->data;
+                add_node_to_frequencies_list(
+                    from_node, to_node, markov_chain);
+            }
+        }
+    }
+}
+
+// See documentation at function declaration
 static int fill_database(MarkovChain *markov_chain)
 {
     Cell* cells[BOARD_SIZE];
@@ -324,46 +375,14 @@ static int fill_database(MarkovChain *markov_chain)
     {
         return EXIT_FAILURE;
     }
-    MarkovNode *from_node = NULL, *to_node = NULL;
-    size_t index_to;
+
     for (size_t i = 0; i < BOARD_SIZE; i++)
     {
         add_to_database(markov_chain, cells[i]);
     }
 
-    for (size_t i = 0; i < BOARD_SIZE; i++)
-    {
-        from_node = 
-            get_node_from_database(markov_chain,cells[i])->data;
+    initialize_board(markov_chain, cells);
 
-        if (cells[i]->snake_to != EMPTY || 
-            cells[i]->ladder_to != EMPTY)
-        {
-            index_to = 
-                MAX(cells[i]->snake_to,cells[i]->ladder_to) - 1;
-            to_node = get_node_from_database(
-                markov_chain, cells[index_to])->data;
-            add_node_to_frequencies_list (
-                from_node, to_node, markov_chain);
-        }
-        else
-        {
-            for (int j = 1; j <= DICE_MAX; j++)
-            {
-                index_to = 
-                    ((Cell*) (from_node->data))->number + j - 1;
-                if (index_to >= BOARD_SIZE)
-                {
-                    break;
-                }
-                to_node = 
-                    get_node_from_database(
-                        markov_chain, cells[index_to])->data;
-                add_node_to_frequencies_list (
-                    from_node, to_node, markov_chain);
-            }
-        }
-    }
     // free temp arr
     for (size_t i = 0; i < BOARD_SIZE; i++)
     {
