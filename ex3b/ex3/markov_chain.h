@@ -11,7 +11,7 @@
 
 // Allocation error message prompt
 #define ALLOCATION_ERROR_MASSAGE "Allocation failure: Failed to allocate"\
-            "new memory\n"
+            " new memory\n"
 // Character which marks the end of the sentence
 #define SENTENCE_END_CHAR ('.')
 
