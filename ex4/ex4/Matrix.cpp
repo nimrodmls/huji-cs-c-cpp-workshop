@@ -39,16 +39,24 @@ int Matrix::get_cols()
 Matrix& Matrix::transpose()
 {
 	auto new_matrix = _allocate_matrix(_columns, _rows);
-	for (int row_index = 0; row_index < _columns; row_index++)
+	for (int row_index = 0; row_index < _rows; row_index++)
 	{
 		for (int column_index = 0;
-			column_index < _rows;
+			column_index < _columns;
 			column_index++)
 		{
-			new_matrix[row_index][column_index] =
-				_rmatrix[column_index][row_index];
+			new_matrix[column_index][row_index] =
+				_rmatrix[row_index][column_index];
 		}
 	}
+
+	// Transferring ownership over to the new transposed matrix
+	_destroy_matrix(_rmatrix, _rows);
+	auto temp_new_cols = _rows;
+	_rows = _columns;
+	_columns = temp_new_cols;
+	_rmatrix = new_matrix;
+
 	return *this;
 }
 
@@ -103,7 +111,7 @@ Matrix& Matrix::operator=(const Matrix& rhs)
 
 float Matrix::operator()(int row, int col)
 {
-	return 0.0f;
+	return _rmatrix[row][col];
 }
 
 float Matrix::operator[](int index)
@@ -146,13 +154,43 @@ void Matrix::_copy_matrix(Matrix& source)
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, const Matrix& obj)
+std::ostream& operator<<(std::ostream& os, Matrix& obj)
 {
+	for (int row_index = 0; row_index < obj._rows; row_index++)
+	{
+		for (int column_index = 0; 
+			 column_index < obj._columns; 
+			 column_index++)
+		{
+			os << obj(row_index, column_index) << " ";
+			/*if (0.1 < obj(row_index, column_index))
+			{
+				os << "**";
+			}
+			else
+			{
+				os << "  ";
+			}*/
+		}
+
+		os << std::endl;
+	}
+
 	return os;
 }
 
-std::istream& operator>>(std::istream& is, const Matrix& obj)
+std::istream& operator>>(std::istream& is, Matrix& obj)
 {
+	for (int row_index = 0; row_index < obj._rows; row_index++)
+	{
+		for (int column_index = 0;
+			column_index < obj._columns;
+			column_index++)
+		{
+			is >> obj._rmatrix[row_index][column_index];
+		}
+	}
+
 	return is;
 }
 

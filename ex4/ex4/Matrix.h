@@ -50,7 +50,7 @@ public:
 	float operator[](int index);
 
 	// Stream operators
-	friend std::ostream& operator<<(std::ostream& os, const Matrix& obj);
+	friend std::ostream& operator<<(std::ostream& os, Matrix& obj);
 	friend std::istream& operator>>(std::istream& is, Matrix& obj);
 
 private:
