@@ -16,7 +16,7 @@ typedef struct matrix_dims
 class Matrix
 {
 public:
-	Matrix() = default;
+	Matrix();
 	Matrix(int rows, int cols);
 	Matrix(Matrix& matrix);
 	~Matrix();
@@ -50,11 +50,18 @@ public:
 	float operator[](int index);
 
 	// Stream operators
-	std::ostream& operator<<(std::ostream& os, const Matrix& obj);
-	std::ostream& operator>>(std::istream& is, const Matrix& obj);
+	friend std::ostream& operator<<(std::ostream& os, const Matrix& obj);
+	friend std::istream& operator>>(std::istream& is, Matrix& obj);
 
 private:
+	static float** _allocate_matrix(int rows, int columns);
+	static void _destroy_matrix(float** matrix, int rows);
+	void _copy_matrix(Matrix& source);
 
+private:
+	float** _rmatrix;
+	int _rows = 0;
+	int _columns = 0;
 };
 
 #endif //MATRIX_H

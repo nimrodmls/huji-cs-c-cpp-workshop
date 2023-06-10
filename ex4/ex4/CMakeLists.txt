@@ -3,7 +3,7 @@
 #
 
 # Add source to this project's executable.
-add_executable (ex4 "Matrix.cpp" "Activation.cpp" "MlpNetwork.cpp" "Dense.cpp" "temp_main.cpp")
+add_executable (ex4 "temp_main.cpp" "Matrix.cpp" "Dense.cpp" "Activation.cpp" "MlpNetwork.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ex4 PROPERTY CXX_STANDARD 20)
