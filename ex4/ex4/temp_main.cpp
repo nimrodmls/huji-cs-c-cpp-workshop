@@ -6,8 +6,10 @@ int wmain()
 	Matrix a(3, 2);
 	std::cout << "Insert Matrix:" << std::endl;
 	std::cin >> a;
-	std::cout << a << std::endl;
+	a.plain_print();
 	a.transpose();
-	std::cout << a << std::endl;
+	a.plain_print();
+	a.vectorize();
+	a.plain_print();
 	return 0;
 }

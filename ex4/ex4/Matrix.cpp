@@ -62,12 +62,42 @@ Matrix& Matrix::transpose()
 
 Matrix& Matrix::vectorize()
 {
-	Matrix a;
-	return a;
+	int new_matrix_index = 0;
+	auto new_matrix = _allocate_matrix(_rows * _columns, 1);
+	for (int row_index = 0; row_index < _rows; row_index++)
+	{
+		for (int column_index = 0;
+			column_index < _columns;
+			column_index++)
+		{
+			new_matrix[new_matrix_index][0] =
+				_rmatrix[row_index][column_index];
+			new_matrix_index++;
+		}
+	}
+
+	// Transferring ownership over to the new vectorized matrix
+	_destroy_matrix(_rmatrix, _rows);
+	_rows = _columns * _rows;
+	_columns = 1;
+	_rmatrix = new_matrix;
+
+	return *this;
 }
 
 void Matrix::plain_print()
 {
+	for (int row_index = 0; row_index < _rows; row_index++)
+	{
+		for (int column_index = 0;
+			column_index < _columns;
+			column_index++)
+		{
+			std::cout << _rmatrix[row_index][column_index] << " ";
+		}
+
+		std::cout << std::endl;
+	}
 }
 
 Matrix& Matrix::dot(Matrix& in)
@@ -162,15 +192,14 @@ std::ostream& operator<<(std::ostream& os, Matrix& obj)
 			 column_index < obj._columns; 
 			 column_index++)
 		{
-			os << obj(row_index, column_index) << " ";
-			/*if (0.1 < obj(row_index, column_index))
+			if (0.1 < obj(row_index, column_index))
 			{
 				os << "**";
 			}
 			else
 			{
 				os << "  ";
-			}*/
+			}
 		}
 
 		os << std::endl;
