@@ -46,7 +46,9 @@ public:
 	Matrix& operator=(const Matrix& rhs);
 
 	// Access operators
+	float operator()(int row, int col) const;
 	float& operator()(int row, int col);
+	float operator[](int index) const;
 	float& operator[](int index);
 
 	// Stream operators
@@ -54,14 +56,13 @@ public:
 	friend std::istream& operator>>(std::istream& is, Matrix& obj);
 
 private:
-	static float** _allocate_matrix(int rows, int columns);
-	static void _destroy_matrix(float** matrix, int rows);
+	static int _2d_index_to_1d(int row, int col, int col_count);
 
 	bool _validate_dimensions(const Matrix& other) const;
-	void _copy_matrix(Matrix& source);
+	void _copy_matrix(const Matrix& source);
 
 private:
-	float** _rmatrix;
+	float* _rmatrix;
 	int _rows = 0;
 	int _columns = 0;
 };

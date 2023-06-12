@@ -7,7 +7,7 @@ Matrix::Matrix() :
 Matrix::Matrix(int rows, int cols) :
 	_rows(rows), 
 	_columns(cols), 
-	_rmatrix(_allocate_matrix(rows, cols))
+	_rmatrix(new float[rows * cols]())
 {
 	if ((0 >= _rows) || (0 >= _columns))
 	{
@@ -23,7 +23,7 @@ Matrix::Matrix(Matrix& matrix) :
 
 Matrix::~Matrix()
 {
-	_destroy_matrix(_rmatrix, _rows);
+	delete[] _rmatrix;
 }
 
 int Matrix::get_rows() const
@@ -38,20 +38,21 @@ int Matrix::get_cols() const
 
 Matrix& Matrix::transpose()
 {
-	auto new_matrix = _allocate_matrix(_columns, _rows);
+	auto new_matrix = new float[_columns * _rows]();
 	for (int row_index = 0; row_index < _rows; row_index++)
 	{
 		for (int column_index = 0;
 			column_index < _columns;
 			column_index++)
 		{
-			new_matrix[column_index][row_index] =
-				_rmatrix[row_index][column_index];
+			new_matrix[
+				_2d_index_to_1d(column_index, row_index, _rows)
+			] = operator()(row_index, column_index);
 		}
 	}
 
 	// Transferring ownership over to the new transposed matrix
-	_destroy_matrix(_rmatrix, _rows);
+	delete[] _rmatrix;
 	auto temp_new_cols = _rows;
 	_rows = _columns;
 	_columns = temp_new_cols;
@@ -62,26 +63,8 @@ Matrix& Matrix::transpose()
 
 Matrix& Matrix::vectorize()
 {
-	int new_matrix_index = 0;
-	auto new_matrix = _allocate_matrix(_rows * _columns, 1);
-	for (int row_index = 0; row_index < _rows; row_index++)
-	{
-		for (int column_index = 0;
-			column_index < _columns;
-			column_index++)
-		{
-			new_matrix[new_matrix_index][0] =
-				_rmatrix[row_index][column_index];
-			new_matrix_index++;
-		}
-	}
-
-	// Transferring ownership over to the new vectorized matrix
-	_destroy_matrix(_rmatrix, _rows);
 	_rows = _columns * _rows;
 	_columns = 1;
-	_rmatrix = new_matrix;
-
 	return *this;
 }
 
@@ -93,7 +76,7 @@ void Matrix::plain_print()
 			column_index < _columns;
 			column_index++)
 		{
-			std::cout << _rmatrix[row_index][column_index] << " ";
+			std::cout << operator()(row_index, column_index) << " ";
 		}
 
 		std::cout << std::endl;
@@ -117,7 +100,7 @@ Matrix Matrix::dot(Matrix& in)
 			
 			dot_matrix(row_index, column_index) =
 				in(row_index, column_index) * 
-				_rmatrix[row_index][column_index];
+				operator()(row_index, column_index);
 		}
 	}
 
@@ -153,40 +136,37 @@ Matrix& Matrix::operator+=(const Matrix& rhs)
 
 Matrix& Matrix::operator=(const Matrix& rhs)
 {
-	Matrix a;
-	return a;
+	_rows = rhs.get_rows();
+	_columns = rhs.get_cols();
+	_rmatrix = new float[_rows * _columns]();
+	_copy_matrix(rhs);
+
+	return *this;
+}
+
+float Matrix::operator()(int row, int col) const
+{
+	return _rmatrix[_2d_index_to_1d(row, col, _columns)];
 }
 
 float& Matrix::operator()(int row, int col)
 {
-	return _rmatrix[row][col];
+	return _rmatrix[_2d_index_to_1d(row, col, _columns)];
+}
+
+float Matrix::operator[](int index) const
+{
+	return _rmatrix[index];
 }
 
 float& Matrix::operator[](int index)
 {
-	float a = 0.0f;
-	return a;
+	return _rmatrix[index];
 }
 
-float** Matrix::_allocate_matrix(int rows, int columns)
+int Matrix::_2d_index_to_1d(int row, int col, int col_count)
 {
-	float** matrix = new float* [rows];
-	for (int index = 0; index < rows; index++)
-	{
-		matrix[index] = new float[columns];
-	}
-
-	return matrix;
-}
-
-void Matrix::_destroy_matrix(float** matrix, int rows)
-{
-	for (int row_index = 0; row_index < rows; row_index++)
-	{
-		delete[] matrix[row_index];
-	}
-
-	delete[] matrix;
+	return (row * col_count) + col;
 }
 
 bool Matrix::_validate_dimensions(const Matrix& other) const
@@ -199,7 +179,7 @@ bool Matrix::_validate_dimensions(const Matrix& other) const
 	return true;
 }
 
-void Matrix::_copy_matrix(Matrix& source)
+void Matrix::_copy_matrix(const Matrix& source)
 {
 	for (int row_index = 0; row_index < _rows; row_index++)
 	{
@@ -207,7 +187,7 @@ void Matrix::_copy_matrix(Matrix& source)
 			 column_index < _columns;
 			 column_index++)
 		{
-			_rmatrix[row_index][column_index] = 
+			operator()(row_index, column_index) =
 				source(row_index, column_index);
 		}
 	}
@@ -245,7 +225,7 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 			column_index < obj._columns;
 			column_index++)
 		{
-			is >> obj._rmatrix[row_index][column_index];
+			is >> obj(row_index, column_index);
 		}
 	}
 
