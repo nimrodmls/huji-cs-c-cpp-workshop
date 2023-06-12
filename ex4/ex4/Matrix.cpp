@@ -140,7 +140,7 @@ int Matrix::argmax()
 	return current_max;
 }
 
-float Matrix::sum()
+float Matrix::sum() const
 {
 	float matrix_sum = 0;
 	for (int index = 0; index < _rows * _columns; index++)
@@ -178,27 +178,54 @@ Matrix& Matrix::operator=(const Matrix& rhs)
 
 float Matrix::operator()(int row, int col) const
 {
-	return _rmatrix[_2d_index_to_1d(row, col, _columns)];
+	int raw_index = _2d_index_to_1d(row, col, _columns);
+	if (_is_out_of_range(raw_index, _rows * _columns))
+	{
+		throw std::out_of_range("Invalid matrix index");
+	}
+
+	return _rmatrix[raw_index];
 }
 
 float& Matrix::operator()(int row, int col)
 {
-	return _rmatrix[_2d_index_to_1d(row, col, _columns)];
+	int raw_index = _2d_index_to_1d(row, col, _columns);
+	if (_is_out_of_range(raw_index, _rows * _columns))
+	{
+		throw std::out_of_range("Invalid matrix index");
+	}
+
+	return _rmatrix[raw_index];
 }
 
 float Matrix::operator[](int index) const
 {
+	if (_is_out_of_range(index, _rows * _columns))
+	{
+		throw std::out_of_range("Invalid matrix index");
+	}
+
 	return _rmatrix[index];
 }
 
 float& Matrix::operator[](int index)
 {
+	if (_is_out_of_range(index, _rows * _columns))
+	{
+		throw std::out_of_range("Invalid matrix index");
+	}
+
 	return _rmatrix[index];
 }
 
 int Matrix::_2d_index_to_1d(int row, int col, int col_count)
 {
 	return (row * col_count) + col;
+}
+
+int Matrix::_is_out_of_range(int index, int size)
+{
+	return (0 > index) || (index >= size);
 }
 
 bool Matrix::_validate_dimensions(const Matrix& other) const

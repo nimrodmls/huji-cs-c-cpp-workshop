@@ -5,11 +5,11 @@
 
 namespace activation
 {
-	Matrix softmax(Matrix& input);
+	Matrix softmax(const Matrix& input);
 
-	Matrix relu(Matrix& input);
+	Matrix relu(const Matrix& input);
 
-	using ActivationPfn = decltype(relu);
+	using ActivationPfn = decltype(&relu);
 }
 
 #endif //ACTIVATION_H

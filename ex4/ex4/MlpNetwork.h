@@ -33,10 +33,12 @@ class MlpNetwork
 {
 public:
 	MlpNetwork(Matrix weights[4], Matrix biases[4]);
+
 	MlpNetwork() = delete;
 	MlpNetwork(MlpNetwork&) = delete;
 	MlpNetwork& operator=(MlpNetwork&) = delete;
 	~MlpNetwork() = default;
+
 private:
 };
 

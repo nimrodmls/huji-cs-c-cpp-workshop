@@ -16,12 +16,12 @@ public:
 	Dense& operator=(const Dense&) = delete;
 	~Dense() = default;
 
-	Matrix get_weights();
-	Matrix get_bias();
-	activation::ActivationPfn get_activation();
+	Matrix get_weights() const;
+	Matrix get_bias() const;
+	activation::ActivationPfn get_activation() const;
 
 	// Activation
-	Matrix operator()(const Matrix& input);
+	Matrix operator()(const Matrix& input) const;
 
 private:
 	activation::ActivationPfn _activation_func;

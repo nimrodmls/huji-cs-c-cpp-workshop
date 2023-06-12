@@ -30,7 +30,7 @@ public:
 	float norm();
 	Matrix& rref();
 	int argmax();
-	float sum();
+	float sum() const;
 
 	
 	// Addition operators
@@ -56,6 +56,7 @@ public:
 
 private:
 	static int _2d_index_to_1d(int row, int col, int col_count);
+	static int _is_out_of_range(int index, int size);
 
 	bool _validate_dimensions(const Matrix& other) const;
 	void _copy_matrix(const Matrix& source);
