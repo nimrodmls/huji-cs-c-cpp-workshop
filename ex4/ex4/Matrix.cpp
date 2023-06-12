@@ -16,7 +16,7 @@ Matrix::Matrix(int rows, int cols) :
 }
 
 Matrix::Matrix(Matrix& matrix) :
-	_rows(matrix.get_rows()), _columns(matrix.get_cols())
+	Matrix(matrix.get_rows(), matrix.get_cols())
 {
 	_copy_matrix(matrix);
 }
@@ -26,12 +26,12 @@ Matrix::~Matrix()
 	_destroy_matrix(_rmatrix, _rows);
 }
 
-int Matrix::get_rows()
+int Matrix::get_rows() const
 {
 	return _rows;
 }
 
-int Matrix::get_cols()
+int Matrix::get_cols() const
 {
 	return _columns;
 }
@@ -100,10 +100,28 @@ void Matrix::plain_print()
 	}
 }
 
-Matrix& Matrix::dot(Matrix& in)
+Matrix Matrix::dot(Matrix& in)
 {
-	Matrix a;
-	return a;
+	if (!_validate_dimensions(in))
+	{
+		throw std::length_error("Dimensions incompatible");
+	}
+	
+	Matrix dot_matrix(_rows, _columns);
+	for (int row_index = 0; row_index < _rows; row_index++)
+	{
+		for (int column_index = 0;
+			column_index < _columns;
+			column_index++)
+		{
+			
+			dot_matrix(row_index, column_index) =
+				in(row_index, column_index) * 
+				_rmatrix[row_index][column_index];
+		}
+	}
+
+	return dot_matrix;
 }
 
 float Matrix::norm()
@@ -139,14 +157,15 @@ Matrix& Matrix::operator=(const Matrix& rhs)
 	return a;
 }
 
-float Matrix::operator()(int row, int col)
+float& Matrix::operator()(int row, int col)
 {
 	return _rmatrix[row][col];
 }
 
-float Matrix::operator[](int index)
+float& Matrix::operator[](int index)
 {
-	return 0.0f;
+	float a = 0.0f;
+	return a;
 }
 
 float** Matrix::_allocate_matrix(int rows, int columns)
@@ -164,10 +183,20 @@ void Matrix::_destroy_matrix(float** matrix, int rows)
 {
 	for (int row_index = 0; row_index < rows; row_index++)
 	{
-		delete matrix[row_index];
+		delete[] matrix[row_index];
 	}
 
-	delete matrix;
+	delete[] matrix;
+}
+
+bool Matrix::_validate_dimensions(const Matrix& other) const
+{
+	if ((_columns != other.get_cols()) || 
+		(_rows != other.get_rows()))
+	{
+		return false;
+	}
+	return true;
 }
 
 void Matrix::_copy_matrix(Matrix& source)

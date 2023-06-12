@@ -21,12 +21,12 @@ public:
 	Matrix(Matrix& matrix);
 	~Matrix();
 
-	int get_rows();
-	int get_cols();
+	int get_rows() const;
+	int get_cols() const;
 	Matrix& transpose();
 	Matrix& vectorize();
 	void plain_print();
-	Matrix& dot(Matrix& in);
+	Matrix dot(Matrix& in);
 	float norm();
 	Matrix& rref();
 	int argmax();
@@ -46,8 +46,8 @@ public:
 	Matrix& operator=(const Matrix& rhs);
 
 	// Access operators
-	float operator()(int row, int col);
-	float operator[](int index);
+	float& operator()(int row, int col);
+	float& operator[](int index);
 
 	// Stream operators
 	friend std::ostream& operator<<(std::ostream& os, Matrix& obj);
@@ -56,6 +56,8 @@ public:
 private:
 	static float** _allocate_matrix(int rows, int columns);
 	static void _destroy_matrix(float** matrix, int rows);
+
+	bool _validate_dimensions(const Matrix& other) const;
 	void _copy_matrix(Matrix& source);
 
 private:
