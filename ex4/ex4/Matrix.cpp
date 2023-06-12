@@ -1,5 +1,7 @@
 #include "Matrix.h"
 
+constexpr float quadratic_power = 2.0f;
+
 Matrix::Matrix() :
 	Matrix(1, 1)
 {}
@@ -15,7 +17,7 @@ Matrix::Matrix(int rows, int cols) :
 	}
 }
 
-Matrix::Matrix(Matrix& matrix) :
+Matrix::Matrix(const Matrix& matrix) :
 	Matrix(matrix.get_rows(), matrix.get_cols())
 {
 	_copy_matrix(matrix);
@@ -109,7 +111,13 @@ Matrix Matrix::dot(Matrix& in)
 
 float Matrix::norm()
 {
-	return 0.0f;
+	float quadratic_sum = 0;
+	for (int index = 0; index < _rows * _columns; index++)
+	{
+		quadratic_sum += std::pow(_rmatrix[index], quadratic_power);
+	}
+
+	return std::sqrt(quadratic_sum);
 }
 
 Matrix& Matrix::rref()
@@ -120,18 +128,42 @@ Matrix& Matrix::rref()
 
 int Matrix::argmax()
 {
-	return 0;
+	int current_max = 0;
+	for (int index = 0; index < _rows * _columns; index++)
+	{
+		if (_rmatrix[current_max] < _rmatrix[index])
+		{
+			current_max = index;
+		}
+	}
+
+	return current_max;
 }
 
 float Matrix::sum()
 {
-	return 0.0f;
+	float matrix_sum = 0;
+	for (int index = 0; index < _rows * _columns; index++)
+	{
+		matrix_sum += _rmatrix[index];
+	}
+
+	return matrix_sum;
 }
 
 Matrix& Matrix::operator+=(const Matrix& rhs)
 {
-	Matrix a;
-	return a;
+	if (!_validate_dimensions(rhs))
+	{
+		throw std::length_error("Dimensions incompatible");
+	}
+
+	for (int index = 0; index < _rows * _columns; index++)
+	{
+		_rmatrix[index] += rhs[index];
+	}
+
+	return *this;
 }
 
 Matrix& Matrix::operator=(const Matrix& rhs)
@@ -232,22 +264,61 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 	return is;
 }
 
-Matrix operator+(const Matrix& rhs)
+Matrix operator+(const Matrix& lhs, const Matrix& rhs)
 {
-	return Matrix();
+	Matrix addition_matrix(lhs);
+	addition_matrix += rhs;
+	return addition_matrix;
 }
 
 Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 {
-	return Matrix();
+	if (lhs.get_cols() != rhs.get_rows())
+	{
+		throw std::length_error("Dimensions incompatible");
+	}
+
+	Matrix mult_matrix(lhs.get_rows(), rhs.get_cols());
+
+	for (int lhs_index = 0; lhs_index < lhs.get_rows(); lhs_index++)
+	{
+		for (int rhs_index = 0; 
+			 rhs_index < rhs.get_cols(); 
+			 rhs_index++)
+		{
+			// At this point, we're modifying the i,j index
+			// of the multiplication matrix
+			float mult_sum = 0;
+
+			// Now for the actual multiplication
+			for (int mult_index = 0; 
+				 mult_index < lhs.get_cols(); 
+				 mult_index++)
+			{
+				mult_sum += 
+					lhs(lhs_index, mult_index) * 
+					rhs(mult_index, rhs_index);
+			}
+
+			mult_matrix(lhs_index, rhs_index) = mult_sum;
+		}
+	}
+	
+	return mult_matrix;
 }
 
 Matrix operator*(float scalar, const Matrix& rhs)
 {
-	return Matrix();
+	return operator*(rhs, scalar);
 }
 
 Matrix operator*(const Matrix& lhs, float scalar)
 {
-	return Matrix();
+	Matrix mult_matrix(lhs);
+	for (int index = 0; index < lhs._rows * lhs._columns; index++)
+	{
+		mult_matrix._rmatrix[index] *= scalar;
+	}
+
+	return mult_matrix;
 }

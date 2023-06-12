@@ -18,7 +18,7 @@ class Matrix
 public:
 	Matrix();
 	Matrix(int rows, int cols);
-	Matrix(Matrix& matrix);
+	Matrix(const Matrix& matrix);
 	~Matrix();
 
 	int get_rows() const;
@@ -35,7 +35,6 @@ public:
 	
 	// Addition operators
 	Matrix& operator+=(const Matrix& rhs);
-	friend Matrix operator+(const Matrix& rhs);
 
 	// Multiplication operators
 	friend Matrix operator*(const Matrix& lhs, const Matrix& rhs);
@@ -66,5 +65,7 @@ private:
 	int _rows = 0;
 	int _columns = 0;
 };
+
+Matrix operator+(const Matrix& lhs, const Matrix& rhs);
 
 #endif //MATRIX_H
