@@ -24,6 +24,5 @@ activation::ActivationPfn Dense::get_activation() const
 // Activation
 Matrix Dense::operator()(const Matrix& input) const
 {
-	return _activation_func(input);
+	return _activation_func((_weights * input) + _bias);
 }
-

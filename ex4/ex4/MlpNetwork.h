@@ -32,14 +32,20 @@ const matrix_dims bias_dims[] = {{128, 1},
 class MlpNetwork
 {
 public:
-	MlpNetwork(Matrix weights[4], Matrix biases[4]);
+	MlpNetwork(Matrix weights[MLP_SIZE], Matrix biases[MLP_SIZE]);
 
 	MlpNetwork() = delete;
 	MlpNetwork(MlpNetwork&) = delete;
 	MlpNetwork& operator=(MlpNetwork&) = delete;
 	~MlpNetwork() = default;
 
+	digit operator()(Matrix image) const;
+
 private:
+	const Dense _layer1;
+	const Dense _layer2;
+	const Dense _layer3;
+	const Dense _layer4;
 };
 
 #endif // MLPNETWORK_H

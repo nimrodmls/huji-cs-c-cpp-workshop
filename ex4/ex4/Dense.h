@@ -24,9 +24,9 @@ public:
 	Matrix operator()(const Matrix& input) const;
 
 private:
-	activation::ActivationPfn _activation_func;
-	Matrix _weights;
-	Matrix _bias;
+	const activation::ActivationPfn _activation_func;
+	const Matrix _weights;
+	const Matrix _bias;
 };
 
 #endif //DENSE_H

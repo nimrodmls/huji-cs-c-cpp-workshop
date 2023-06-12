@@ -120,7 +120,7 @@ float Matrix::norm()
 	return std::sqrt(quadratic_sum);
 }
 
-Matrix& Matrix::rref()
+Matrix Matrix::rref()
 {
 	Matrix a;
 	return a;

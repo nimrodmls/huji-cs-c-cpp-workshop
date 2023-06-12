@@ -28,7 +28,7 @@ public:
 	void plain_print();
 	Matrix dot(Matrix& in);
 	float norm();
-	Matrix& rref();
+	Matrix rref();
 	int argmax();
 	float sum() const;
 
