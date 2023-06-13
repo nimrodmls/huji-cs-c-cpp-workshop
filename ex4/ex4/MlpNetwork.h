@@ -29,19 +29,35 @@ const matrix_dims bias_dims[] = {{128, 1},
 								 {20,  1},
 								 {10,  1}};
 
+/**
+ * @class MlpNetwork
+ * @brief Represents a neural network with multiple layers
+ */
 class MlpNetwork
 {
 public:
+	/**
+	* Constructs a neural network of 4 layers.
+	* @param weights - The weights matrices for each layer
+	* @param biases - The biases matrices for each layer.
+	*/
 	MlpNetwork(Matrix weights[MLP_SIZE], Matrix biases[MLP_SIZE]);
 
+	// Explicitly defining behavior to prevent implicit behavior
 	MlpNetwork() = delete;
-	MlpNetwork(MlpNetwork&) = delete;
+	MlpNetwork(const MlpNetwork&) = delete;
 	MlpNetwork& operator=(MlpNetwork&) = delete;
 	~MlpNetwork() = default;
 
+	/**
+	* Activates the neural network on a given image.
+	* @param image - The image to analyze.
+	* @return The neural network results.
+	*/
 	digit operator()(Matrix image) const;
 
 private:
+	// All layers of the network
 	const Dense _layer1;
 	const Dense _layer2;
 	const Dense _layer3;

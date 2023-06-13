@@ -14,8 +14,9 @@ typedef struct matrix_dims
 } matrix_dims;
 
 /**
- * Matrix datatype of floating-point variables.
- * Supports elementary matrix operations.
+* @class Matrix
+ * @brief Matrix datatype of floating-point variables.
+ *		  Supports elementary matrix operations.
  */
 class Matrix
 {

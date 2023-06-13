@@ -2,12 +2,13 @@
 
 #include "Activation.h"
 
+// See documentation at header file
 Matrix activation::softmax(const Matrix& input)
 {
 	Matrix softmax_matrix(input);
 
 	float variable_sum = 0;
-
+	// Calculating the expontential sum of the matrix first
 	for (
 		int row_index = 0;
 		row_index < input.get_rows() * input.get_cols();
@@ -33,6 +34,7 @@ Matrix activation::softmax(const Matrix& input)
 	return softmax_matrix;
 }
 
+// See documentation at header file
 Matrix activation::relu(const Matrix& input)
 {
 	Matrix relu_matrix(input);

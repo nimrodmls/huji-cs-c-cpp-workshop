@@ -1,5 +1,6 @@
 #include "MlpNetwork.h"
 
+// See documentation at header file
 MlpNetwork::MlpNetwork(
 	Matrix weights[MLP_SIZE], Matrix biases[MLP_SIZE]) :
 	_layer1(weights[0], biases[0], activation::relu),
@@ -8,6 +9,7 @@ MlpNetwork::MlpNetwork(
 	_layer4(weights[3], biases[3], activation::softmax)
 {}
 
+// See documentation at header file
 digit MlpNetwork::operator()(Matrix image) const
 {
 	auto output = _layer4(_layer3(_layer2(
