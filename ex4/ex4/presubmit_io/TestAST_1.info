@@ -1,0 +1,1 @@
+MlpNetwork::operator() should not create a new dense each time it is called.
