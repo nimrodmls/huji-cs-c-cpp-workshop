@@ -238,8 +238,8 @@ bool Matrix::is_out_of_range(int index, int size)
 
 bool Matrix::validate_dimensions(const Matrix& other) const
 {
-	return (_columns != other.get_cols()) || 
-		   (_rows != other.get_rows());
+	return (_columns == other.get_cols()) || 
+		   (_rows == other.get_rows());
 }
 
 void Matrix::copy_matrix(const Matrix& source)
