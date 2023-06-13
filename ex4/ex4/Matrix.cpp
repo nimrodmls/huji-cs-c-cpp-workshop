@@ -2,6 +2,12 @@
 
 #include "Matrix.h"
 
+// Exception descriptions
+#define INCOMPATIBLE_DIMENSIONS_EX ("Dimensions incompatible")
+#define INVALID_DIMENSIONS_EX ("Invalid Matrix Dimensions")
+#define INVALID_INDEX_EX ("Invalid matrix index")
+#define READ_INSUFFICIENT_DATA_EX ("Failed to read sufficient data")
+
 // Quadratic floating-point power
 constexpr float quadratic_power = 2.0F;
 // Minimal value threshold for output of a matrix
@@ -20,7 +26,7 @@ Matrix::Matrix(int rows, int cols) :
 {
 	if ((0 >= _rows) || (0 >= _columns))
 	{
-		throw std::length_error("Invalid Matrix Dimensions");
+		throw std::length_error(INVALID_DIMENSIONS_EX);
 	}
 
 	_rmatrix = new float[rows * cols]();
@@ -106,7 +112,7 @@ Matrix Matrix::dot(Matrix& in) const
 {
 	if (!validate_dimensions(in))
 	{
-		throw std::length_error("Dimensions incompatible");
+		throw std::length_error(INCOMPATIBLE_DIMENSIONS_EX);
 	}
 	
 	Matrix dot_matrix(_rows, _columns);
@@ -177,7 +183,7 @@ Matrix& Matrix::operator+=(const Matrix& rhs)
 {
 	if (!validate_dimensions(rhs))
 	{
-		throw std::length_error("Dimensions incompatible");
+		throw std::length_error(INCOMPATIBLE_DIMENSIONS_EX);
 	}
 
 	for (int index = 0; index < _rows * _columns; index++)
@@ -198,6 +204,7 @@ Matrix& Matrix::operator=(const Matrix& rhs)
 
 	_rows = rhs.get_rows();
 	_columns = rhs.get_cols();
+	delete[] _rmatrix;
 	_rmatrix = new float[_rows * _columns]();
 	copy_matrix(rhs);
 
@@ -210,7 +217,7 @@ float Matrix::operator()(int row, int col) const
 	int raw_index = coord_to_index(row, col, _columns);
 	if (is_out_of_range(raw_index, _rows * _columns))
 	{
-		throw std::out_of_range("Invalid matrix index");
+		throw std::out_of_range(INVALID_INDEX_EX);
 	}
 
 	return _rmatrix[raw_index];
@@ -222,7 +229,7 @@ float& Matrix::operator()(int row, int col)
 	int raw_index = coord_to_index(row, col, _columns);
 	if (is_out_of_range(raw_index, _rows * _columns))
 	{
-		throw std::out_of_range("Invalid matrix index");
+		throw std::out_of_range(INVALID_INDEX_EX);
 	}
 
 	return _rmatrix[raw_index];
@@ -233,7 +240,7 @@ float Matrix::operator[](int index) const
 {
 	if (is_out_of_range(index, _rows * _columns))
 	{
-		throw std::out_of_range("Invalid matrix index");
+		throw std::out_of_range(INVALID_INDEX_EX);
 	}
 
 	return _rmatrix[index];
@@ -244,7 +251,7 @@ float& Matrix::operator[](int index)
 {
 	if (is_out_of_range(index, _rows * _columns))
 	{
-		throw std::out_of_range("Invalid matrix index");
+		throw std::out_of_range(INVALID_INDEX_EX);
 	}
 
 	return _rmatrix[index];
@@ -324,7 +331,7 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 
 			if (!is)
 			{
-				throw std::runtime_error("Failed to read sufficient data");
+				throw std::runtime_error(READ_INSUFFICIENT_DATA_EX);
 			}
 
 			obj(row_index, column_index) = input;
@@ -347,7 +354,7 @@ Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 {
 	if (lhs.get_cols() != rhs.get_rows())
 	{
-		throw std::length_error("Dimensions incompatible");
+		throw std::length_error(INCOMPATIBLE_DIMENSIONS_EX);
 	}
 
 	Matrix mult_matrix(lhs.get_rows(), rhs.get_cols());

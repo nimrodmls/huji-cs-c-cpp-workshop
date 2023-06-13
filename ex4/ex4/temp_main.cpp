@@ -13,9 +13,9 @@ bool readFileToMatrix(const std::string& filePath, Matrix& mat)
 
 int wmain()
 {
-	//Matrix file_mat(28, 28);
-	//readFileToMatrix("C:\\Projects\\huji-cs-c-cpp-workshop\\ex4\\ex4\\images\\im0", file_mat);
-	//file_mat.plain_print();
+	Matrix file_mat(25, 25);
+	readFileToMatrix("C:\\Projects\\huji-cs-c-cpp-workshop\\ex4\\ex4\\images\\im0", file_mat);
+	file_mat.plain_print();
 
 	Matrix m(1, 9);
 	for (int i = 0; i < m.get_cols() * m.get_rows(); i++)
@@ -23,7 +23,7 @@ int wmain()
 		m[i] = (float)(i - 2);
 	}
 
-	activation::softmax(m);
+	m = Matrix(3, 3);
 
 	Matrix a(3, 3);
 	std::cout << "Insert Matrix:" << std::endl;
