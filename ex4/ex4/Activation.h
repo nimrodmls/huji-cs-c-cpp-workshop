@@ -1,7 +1,7 @@
-#include "Matrix.h"
-
 #ifndef ACTIVATION_H
 #define ACTIVATION_H
+
+#include "Matrix.h"
 
 namespace activation
 {

@@ -55,13 +55,12 @@ public:
 	friend std::istream& operator>>(std::istream& is, Matrix& obj);
 
 private:
-	static int _2d_index_to_1d(int row, int col, int col_count);
-	static int _is_out_of_range(int index, int size);
+	static int coord_to_index(int row, int col, int col_count);
+	static bool is_out_of_range(int index, int size);
 
-	bool _validate_dimensions(const Matrix& other) const;
-	void _copy_matrix(const Matrix& source);
+	bool validate_dimensions(const Matrix& other) const;
+	void copy_matrix(const Matrix& source);
 
-private:
 	float* _rmatrix;
 	int _rows = 0;
 	int _columns = 0;

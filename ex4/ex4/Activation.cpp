@@ -1,26 +1,33 @@
+#include <cmath>
+
 #include "Activation.h"
 
 Matrix activation::softmax(const Matrix& input)
 {
-	if (1 < input.get_cols())
-	{
-		throw std::length_error("Vector is a not single-column");
-	}
+	Matrix softmax_matrix(input);
 
-	Matrix softmax_matrix(input.get_rows(), 1);
-	
 	float variable_sum = 0;
+
 	for (
-		int row_index = 0; row_index < input.get_rows(); row_index++)
+		int row_index = 0;
+		row_index < input.get_rows() * input.get_cols();
+		row_index++)
 	{
 		variable_sum += std::exp(input[row_index]);
 	}
 
-	for (
-		int row_index = 0; row_index < input.get_rows(); row_index++)
+	for (int column_index = 0; 
+		 column_index < input.get_cols(); 
+		 column_index++)
 	{
-		softmax_matrix[row_index] = 
-			std::exp(input[row_index]) / variable_sum;
+		for (
+			int row_index = 0; 
+			row_index < input.get_rows(); 
+			row_index++)
+		{
+			softmax_matrix(row_index, column_index) =
+				std::exp(input(row_index, column_index)) / variable_sum;
+		}
 	}
 
 	return softmax_matrix;
@@ -28,11 +35,6 @@ Matrix activation::softmax(const Matrix& input)
 
 Matrix activation::relu(const Matrix& input)
 {
-	if (1 < input.get_cols())
-	{
-		throw std::length_error("Vector is a not single-column");
-	}
-
 	Matrix relu_matrix(input);
 
 	for (int index = 0; 

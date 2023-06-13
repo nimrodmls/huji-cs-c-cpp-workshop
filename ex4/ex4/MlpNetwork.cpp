@@ -10,7 +10,8 @@ MlpNetwork::MlpNetwork(
 
 digit MlpNetwork::operator()(Matrix image) const
 {
-	auto output = _layer4(_layer3(_layer2(_layer1(image))));
+	auto output = _layer4(_layer3(_layer2(
+		_layer1(image.vectorize()))));
 	auto result_index = output.argmax();
 
 	return { 

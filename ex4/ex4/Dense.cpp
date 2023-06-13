@@ -3,7 +3,7 @@
 Dense::Dense(Matrix weights,
 			 Matrix bias,
 			 activation::ActivationPfn activation_func) :
-	_weights(weights), _bias(bias), _activation_func(activation_func)
+	_activation_func(activation_func), _weights(weights), _bias(bias)
 {}
 
 Matrix Dense::get_weights() const

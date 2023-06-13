@@ -1,15 +1,18 @@
+#include <cmath>
+
 #include "Matrix.h"
 
-constexpr float quadratic_power = 2.0f;
+constexpr float quadratic_power = 2.0F;
+constexpr float matrix_value_threshold = 0.1F;
 
 Matrix::Matrix() :
 	Matrix(1, 1)
 {}
 
 Matrix::Matrix(int rows, int cols) :
+	_rmatrix(new float[rows * cols]()),
 	_rows(rows), 
-	_columns(cols), 
-	_rmatrix(new float[rows * cols]())
+	_columns(cols)
 {
 	if ((0 >= _rows) || (0 >= _columns))
 	{
@@ -20,7 +23,7 @@ Matrix::Matrix(int rows, int cols) :
 Matrix::Matrix(const Matrix& matrix) :
 	Matrix(matrix.get_rows(), matrix.get_cols())
 {
-	_copy_matrix(matrix);
+	copy_matrix(matrix);
 }
 
 Matrix::~Matrix()
@@ -40,7 +43,7 @@ int Matrix::get_cols() const
 
 Matrix& Matrix::transpose()
 {
-	auto new_matrix = new float[_columns * _rows]();
+	float* new_matrix = new float[_columns * _rows]();
 	for (int row_index = 0; row_index < _rows; row_index++)
 	{
 		for (int column_index = 0;
@@ -48,7 +51,7 @@ Matrix& Matrix::transpose()
 			column_index++)
 		{
 			new_matrix[
-				_2d_index_to_1d(column_index, row_index, _rows)
+				coord_to_index(column_index, row_index, _rows)
 			] = operator()(row_index, column_index);
 		}
 	}
@@ -87,7 +90,7 @@ void Matrix::plain_print()
 
 Matrix Matrix::dot(Matrix& in)
 {
-	if (!_validate_dimensions(in))
+	if (!validate_dimensions(in))
 	{
 		throw std::length_error("Dimensions incompatible");
 	}
@@ -153,7 +156,7 @@ float Matrix::sum() const
 
 Matrix& Matrix::operator+=(const Matrix& rhs)
 {
-	if (!_validate_dimensions(rhs))
+	if (!validate_dimensions(rhs))
 	{
 		throw std::length_error("Dimensions incompatible");
 	}
@@ -168,18 +171,23 @@ Matrix& Matrix::operator+=(const Matrix& rhs)
 
 Matrix& Matrix::operator=(const Matrix& rhs)
 {
+	if (this == &rhs)
+	{
+		return *this;
+	}
+
 	_rows = rhs.get_rows();
 	_columns = rhs.get_cols();
 	_rmatrix = new float[_rows * _columns]();
-	_copy_matrix(rhs);
+	copy_matrix(rhs);
 
 	return *this;
 }
 
 float Matrix::operator()(int row, int col) const
 {
-	int raw_index = _2d_index_to_1d(row, col, _columns);
-	if (_is_out_of_range(raw_index, _rows * _columns))
+	int raw_index = coord_to_index(row, col, _columns);
+	if (is_out_of_range(raw_index, _rows * _columns))
 	{
 		throw std::out_of_range("Invalid matrix index");
 	}
@@ -189,8 +197,8 @@ float Matrix::operator()(int row, int col) const
 
 float& Matrix::operator()(int row, int col)
 {
-	int raw_index = _2d_index_to_1d(row, col, _columns);
-	if (_is_out_of_range(raw_index, _rows * _columns))
+	int raw_index = coord_to_index(row, col, _columns);
+	if (is_out_of_range(raw_index, _rows * _columns))
 	{
 		throw std::out_of_range("Invalid matrix index");
 	}
@@ -200,7 +208,7 @@ float& Matrix::operator()(int row, int col)
 
 float Matrix::operator[](int index) const
 {
-	if (_is_out_of_range(index, _rows * _columns))
+	if (is_out_of_range(index, _rows * _columns))
 	{
 		throw std::out_of_range("Invalid matrix index");
 	}
@@ -210,7 +218,7 @@ float Matrix::operator[](int index) const
 
 float& Matrix::operator[](int index)
 {
-	if (_is_out_of_range(index, _rows * _columns))
+	if (is_out_of_range(index, _rows * _columns))
 	{
 		throw std::out_of_range("Invalid matrix index");
 	}
@@ -218,27 +226,23 @@ float& Matrix::operator[](int index)
 	return _rmatrix[index];
 }
 
-int Matrix::_2d_index_to_1d(int row, int col, int col_count)
+int Matrix::coord_to_index(int row, int col, int col_count)
 {
 	return (row * col_count) + col;
 }
 
-int Matrix::_is_out_of_range(int index, int size)
+bool Matrix::is_out_of_range(int index, int size)
 {
 	return (0 > index) || (index >= size);
 }
 
-bool Matrix::_validate_dimensions(const Matrix& other) const
+bool Matrix::validate_dimensions(const Matrix& other) const
 {
-	if ((_columns != other.get_cols()) || 
-		(_rows != other.get_rows()))
-	{
-		return false;
-	}
-	return true;
+	return (_columns != other.get_cols()) || 
+		   (_rows != other.get_rows());
 }
 
-void Matrix::_copy_matrix(const Matrix& source)
+void Matrix::copy_matrix(const Matrix& source)
 {
 	for (int row_index = 0; row_index < _rows; row_index++)
 	{
@@ -260,7 +264,8 @@ std::ostream& operator<<(std::ostream& os, Matrix& obj)
 			 column_index < obj._columns; 
 			 column_index++)
 		{
-			if (0.1 < obj(row_index, column_index))
+			if (matrix_value_threshold < 
+				obj(row_index, column_index))
 			{
 				os << "**";
 			}
@@ -284,7 +289,15 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 			column_index < obj._columns;
 			column_index++)
 		{
-			is >> obj(row_index, column_index);
+			float input = 0;
+			is.read(reinterpret_cast<char*>(&input), sizeof(input));
+
+			if (!is)
+			{
+				throw std::runtime_error("Failed to read sufficient data");
+			}
+
+			obj(row_index, column_index) = input;
 		}
 	}
 

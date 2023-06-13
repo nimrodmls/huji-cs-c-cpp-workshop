@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "Matrix.h"
 #include "Activation.h"
@@ -46,8 +48,9 @@ void usage (int argc) noexcept (false)
  */
 bool readFileToMatrix (const std::string &filePath, Matrix &mat)
 {
-//TODO: implement this function
-  return true;
+	std::fstream in_file(filePath, std::ios::binary | std::ios::in);
+	in_file >> mat;
+	return true;
 }
 
 /**
