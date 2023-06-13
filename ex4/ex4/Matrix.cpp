@@ -2,15 +2,19 @@
 
 #include "Matrix.h"
 
+// Quadratic floating-point power
 constexpr float quadratic_power = 2.0F;
+// Minimal value threshold for output of a matrix
 constexpr float matrix_value_threshold = 0.1F;
 
+// See documentation at header file
 Matrix::Matrix() :
 	Matrix(1, 1)
 {}
 
+// See documentation at header file
 Matrix::Matrix(int rows, int cols) :
-	_rmatrix(new float[rows * cols]()),
+	_rmatrix(nullptr),
 	_rows(rows), 
 	_columns(cols)
 {
@@ -18,29 +22,36 @@ Matrix::Matrix(int rows, int cols) :
 	{
 		throw std::length_error("Invalid Matrix Dimensions");
 	}
+
+	_rmatrix = new float[rows * cols]();
 }
 
+// See documentation at header file
 Matrix::Matrix(const Matrix& matrix) :
 	Matrix(matrix.get_rows(), matrix.get_cols())
 {
 	copy_matrix(matrix);
 }
 
+// See documentation at header file
 Matrix::~Matrix()
 {
 	delete[] _rmatrix;
 }
 
+// See documentation at header file
 int Matrix::get_rows() const
 {
 	return _rows;
 }
 
+// See documentation at header file
 int Matrix::get_cols() const
 {
 	return _columns;
 }
 
+// See documentation at header file
 Matrix& Matrix::transpose()
 {
 	float* new_matrix = new float[_columns * _rows]();
@@ -66,6 +77,7 @@ Matrix& Matrix::transpose()
 	return *this;
 }
 
+// See documentation at header file
 Matrix& Matrix::vectorize()
 {
 	_rows = _columns * _rows;
@@ -73,7 +85,8 @@ Matrix& Matrix::vectorize()
 	return *this;
 }
 
-void Matrix::plain_print()
+// See documentation at header file
+void Matrix::plain_print() const
 {
 	for (int row_index = 0; row_index < _rows; row_index++)
 	{
@@ -88,7 +101,8 @@ void Matrix::plain_print()
 	}
 }
 
-Matrix Matrix::dot(Matrix& in)
+// See documentation at header file
+Matrix Matrix::dot(Matrix& in) const
 {
 	if (!validate_dimensions(in))
 	{
@@ -112,7 +126,8 @@ Matrix Matrix::dot(Matrix& in)
 	return dot_matrix;
 }
 
-float Matrix::norm()
+// See documentation at header file
+float Matrix::norm() const
 {
 	float quadratic_sum = 0;
 	for (int index = 0; index < _rows * _columns; index++)
@@ -123,13 +138,15 @@ float Matrix::norm()
 	return std::sqrt(quadratic_sum);
 }
 
+// See documentation at header file
 Matrix Matrix::rref()
 {
 	Matrix a;
 	return a;
 }
 
-int Matrix::argmax()
+// See documentation at header file
+int Matrix::argmax() const
 {
 	int current_max = 0;
 	for (int index = 0; index < _rows * _columns; index++)
@@ -143,6 +160,7 @@ int Matrix::argmax()
 	return current_max;
 }
 
+// See documentation at header file
 float Matrix::sum() const
 {
 	float matrix_sum = 0;
@@ -154,6 +172,7 @@ float Matrix::sum() const
 	return matrix_sum;
 }
 
+// See documentation at header file
 Matrix& Matrix::operator+=(const Matrix& rhs)
 {
 	if (!validate_dimensions(rhs))
@@ -169,6 +188,7 @@ Matrix& Matrix::operator+=(const Matrix& rhs)
 	return *this;
 }
 
+// See documentation at header file
 Matrix& Matrix::operator=(const Matrix& rhs)
 {
 	if (this == &rhs)
@@ -184,6 +204,7 @@ Matrix& Matrix::operator=(const Matrix& rhs)
 	return *this;
 }
 
+// See documentation at header file
 float Matrix::operator()(int row, int col) const
 {
 	int raw_index = coord_to_index(row, col, _columns);
@@ -195,6 +216,7 @@ float Matrix::operator()(int row, int col) const
 	return _rmatrix[raw_index];
 }
 
+// See documentation at header file
 float& Matrix::operator()(int row, int col)
 {
 	int raw_index = coord_to_index(row, col, _columns);
@@ -206,6 +228,7 @@ float& Matrix::operator()(int row, int col)
 	return _rmatrix[raw_index];
 }
 
+// See documentation at header file
 float Matrix::operator[](int index) const
 {
 	if (is_out_of_range(index, _rows * _columns))
@@ -216,6 +239,7 @@ float Matrix::operator[](int index) const
 	return _rmatrix[index];
 }
 
+// See documentation at header file
 float& Matrix::operator[](int index)
 {
 	if (is_out_of_range(index, _rows * _columns))
@@ -226,22 +250,26 @@ float& Matrix::operator[](int index)
 	return _rmatrix[index];
 }
 
+// See documentation at header file
 int Matrix::coord_to_index(int row, int col, int col_count)
 {
 	return (row * col_count) + col;
 }
 
+// See documentation at header file
 bool Matrix::is_out_of_range(int index, int size)
 {
 	return (0 > index) || (index >= size);
 }
 
+// See documentation at header file
 bool Matrix::validate_dimensions(const Matrix& other) const
 {
 	return (_columns == other.get_cols()) || 
 		   (_rows == other.get_rows());
 }
 
+// See documentation at header file
 void Matrix::copy_matrix(const Matrix& source)
 {
 	for (int row_index = 0; row_index < _rows; row_index++)
@@ -256,6 +284,7 @@ void Matrix::copy_matrix(const Matrix& source)
 	}
 }
 
+// See documentation at header file
 std::ostream& operator<<(std::ostream& os, Matrix& obj)
 {
 	for (int row_index = 0; row_index < obj._rows; row_index++)
@@ -281,6 +310,7 @@ std::ostream& operator<<(std::ostream& os, Matrix& obj)
 	return os;
 }
 
+// See documentation at header file
 std::istream& operator>>(std::istream& is, Matrix& obj)
 {
 	for (int row_index = 0; row_index < obj._rows; row_index++)
@@ -304,6 +334,7 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 	return is;
 }
 
+// See documentation at header file
 Matrix operator+(const Matrix& lhs, const Matrix& rhs)
 {
 	Matrix addition_matrix(lhs);
@@ -311,6 +342,7 @@ Matrix operator+(const Matrix& lhs, const Matrix& rhs)
 	return addition_matrix;
 }
 
+// See documentation at header file
 Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 {
 	if (lhs.get_cols() != rhs.get_rows())
@@ -347,11 +379,13 @@ Matrix operator*(const Matrix& lhs, const Matrix& rhs)
 	return mult_matrix;
 }
 
+// See documentation at header file
 Matrix operator*(float scalar, const Matrix& rhs)
 {
 	return operator*(rhs, scalar);
 }
 
+// See documentation at header file
 Matrix operator*(const Matrix& lhs, float scalar)
 {
 	Matrix mult_matrix(lhs);
