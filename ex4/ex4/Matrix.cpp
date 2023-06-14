@@ -329,7 +329,7 @@ std::istream& operator>>(std::istream& is, Matrix& obj)
 			float input = 0;
 			is.read(reinterpret_cast<char*>(&input), sizeof(input));
 
-			if (!is)
+			if (!is.good())
 			{
 				throw std::runtime_error(READ_INSUFFICIENT_DATA_EX);
 			}
