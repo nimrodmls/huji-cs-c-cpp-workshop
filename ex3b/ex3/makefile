@@ -4,5 +4,5 @@ COMMON_SRC = linked_list.c markov_chain.c
 tweets: tweets_generator.c $(HEADERS) $(COMMON_SRC)
 	gcc -Wall -Wextra -Wvla -std=c99 tweets_generator.c markov_chain.c linked_list.c -o tweets_generator
 
-snakes: snakes_and_ladders.c $(HEADERS) $(COMMON_SRC)
+snake: snakes_and_ladders.c $(HEADERS) $(COMMON_SRC)
 	gcc -Wall -Wextra -Wvla -std=c99 snakes_and_ladders.c markov_chain.c linked_list.c -o snakes_and_ladders
