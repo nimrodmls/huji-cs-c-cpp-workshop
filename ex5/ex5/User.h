@@ -1,16 +1,18 @@
-//
-// Created on 2/20/2022.
-//
-
 #ifndef USER_H
 #define USER_H
+
 #include <unordered_map>
 #include <vector>
 #include <string>
 #include <memory>
+
 #include "Movie.h"
 
+// Forward declaration, to prevent circular includes
 class RecommendationSystem;
+// Unique Ptr for the Recommendataion System
+using up_rec_system = std::unique_ptr<RecommendationSystem>;
+
 typedef std::unordered_map<sp_movie, double, hash_func,equal_func> rank_map;
 
 class User
@@ -19,13 +21,22 @@ public:
 	/**
 	 * Constructor for the class
 	 */
-	// TODO User() this constructor can be implemented however you want
+	User(const std::string& username, 
+	     rank_map user_ranks, 
+		 up_rec_system rec_system);
+
+	// Explicitly defining copy & move to prevent implicit defs
+	User(const User&) = delete;
+	User& operator=(const User&) = delete;
+	User(const User&&) = delete;
+	User& operator=(const User&&) = delete;
+	~User() = default;
 
 	/**
 	 * a getter for the user's name
 	 * @return the username
 	 */
-	// TODO get_name()
+	const std::string& get_name() const;
 
 	/**
 	 * function for adding a movie to the DB
@@ -38,12 +49,11 @@ public:
                          const std::vector<double> &features,
                          double rate);
 
-
     /**
      * a getter for the ranks map
      * @return
      */
-    // TODO get_ranks()
+	rank_map get_ranks();
 
 	/**
 	 * returns a recommendation according to the movie's content
@@ -66,16 +76,14 @@ public:
 	 * @return predicted score for the given movie
 	 */
 	double get_prediction_score_for_movie(const std::string& name, int year, int k) const;
-
-	/**
-	 * output stream operator
-	 * @param os the output stream
-	 * @param user the user
-	 * @return output stream
-	 */
-	// TODO &operator<<
 };
 
-
+/**
+ * output stream operator
+ * @param os the output stream
+ * @param user the user
+ * @return output stream
+ */
+std::ostream&& operator<<(const std::ostream& os, const User& user);
 
 #endif //USER_H

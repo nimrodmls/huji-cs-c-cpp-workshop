@@ -10,7 +10,19 @@ class RecommendationSystem
 {
 public:
 
-	//explicit RecommendationSystem()
+    explicit RecommendationSystem();
+
+    // Explicitly defining copy & move to prevent implicit defs
+    RecommendationSystem(
+        const RecommendationSystem&) = delete;
+    RecommendationSystem& operator=(
+        const RecommendationSystem&) = delete;
+    RecommendationSystem(
+        const RecommendationSystem&&) = delete;
+    RecommendationSystem& operator=(
+        const RecommendationSystem&&) = delete;
+    ~RecommendationSystem() = default;
+
     /**
      * adds a new movie to the system
      * @param name name of movie
@@ -54,11 +66,8 @@ public:
 	 * @return shared pointer to movie in system
 	 */
 	sp_movie get_movie(const std::string &name, int year) const;
-
-
-	// TODO operator<<
-
 };
 
+std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs);
 
 #endif //RECOMMENDATIONSYSTEM_H
