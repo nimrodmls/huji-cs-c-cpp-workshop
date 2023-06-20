@@ -99,8 +99,6 @@ public:
 	*/
 	float norm() const;
 
-	Matrix rref();
-
 	/**
 	* Getting the maximal value in the matrix.
 	* @return The maximal value.

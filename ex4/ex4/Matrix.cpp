@@ -7,6 +7,8 @@
 #define INVALID_DIMENSIONS_EX ("Invalid Matrix Dimensions")
 #define INVALID_INDEX_EX ("Invalid matrix index")
 #define READ_INSUFFICIENT_DATA_EX ("Failed to read sufficient data")
+#define MATRIX_VALUE_PRINT_THRESHOLD ("**")
+#define MATRIX_VALUE_PRINT_EMPTY ("  ")
 
 // Quadratic floating-point power
 constexpr float quadratic_power = 2.0F;
@@ -142,13 +144,6 @@ float Matrix::norm() const
 	}
 
 	return std::sqrt(quadratic_sum);
-}
-
-// See documentation at header file
-Matrix Matrix::rref()
-{
-	Matrix a;
-	return a;
 }
 
 // See documentation at header file
@@ -303,11 +298,11 @@ std::ostream& operator<<(std::ostream& os, Matrix& obj)
 			if (matrix_value_threshold < 
 				obj(row_index, column_index))
 			{
-				os << "**";
+				os << MATRIX_VALUE_PRINT_THRESHOLD;
 			}
 			else
 			{
-				os << "  ";
+				os << MATRIX_VALUE_PRINT_EMPTY;
 			}
 		}
 
