@@ -1,10 +1,16 @@
 #ifndef RECOMMENDATIONSYSTEM_H
 #define RECOMMENDATIONSYSTEM_H
 
+#include <functional>
+#include <map>
+
 #include "User.h"
 
-using movie_db = std::unordered_map<
-    std::string, std::pair<sp_movie, std::vector<double>>>;
+using movie_comperator = 
+	std::function<bool(const sp_movie&, const sp_movie&)>;
+
+using movie_db = 
+	std::map<sp_movie, std::vector<double>, movie_comperator>;
 
 class RecommendationSystem
 {
@@ -52,7 +58,7 @@ public:
 
     /**
      * A function that calculates the movie with highest
-     * predicted score based on ranking of other movies
+     * predicted score based on ranking of other _movies
      * @param user - The user to recommend to
      * @param movie_count - The size of the movies
      *                      set to recommend from
@@ -63,7 +69,7 @@ public:
 
     /**
      * Predict a user rating for a movie given argument
-     * using item cf procedure with k most similar movies.
+     * using item cf procedure with k most similar _movies.
      * @param user - ranking to use
      * @param movie -  movie to predict
      * @param movie_count - The size of the movies set to recommend
@@ -73,7 +79,7 @@ public:
 	double predict_movie_score(
         const User& user, const sp_movie& movie, int movie_count);
 private:
-    movie_db movies;
+    movie_db _movies;
 };
 
 std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs);

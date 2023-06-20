@@ -62,7 +62,7 @@ private:
 std::ostream& operator<<(std::ostream& os, const Movie& movie); 
 
 /**
- * Comparison of order between two movies' years
+ * Comparison of order between two _movies' years
  * @param rhs - right hand side
  * @param lhs - left hand side
  * @return returns true if (lhs.year) < rhs.year or

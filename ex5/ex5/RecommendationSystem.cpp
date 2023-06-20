@@ -1,25 +1,39 @@
 #include "RecommendationSystem.h"
 
-RecommendationSystem::RecommendationSystem()
-{
-}
+RecommendationSystem::RecommendationSystem() :
+	_movies(
+		[](const sp_movie& movie1, const sp_movie& movie2)
+		{
+			return *movie1.get() < *movie2.get();
+		})
+{}
 
 sp_movie RecommendationSystem::add_movie(
 	const std::string& name, 
 	int year, 
 	const std::vector<double>& features)
 {
-	auto movie = std::make_shared<Movie>(name, year);
-	movies[name + std::to_string(year)] = 
-		std::make_pair(
-			movie, features);
+	auto movie = get_movie(name, year);
+	if (nullptr != movie)
+	{
+		return movie;
+	}
+
+	movie = std::make_shared<Movie>(name, year);
+	_movies[movie] = features;
 	return movie;
 }
 
 sp_movie RecommendationSystem::get_movie(
 	const std::string& name, int year) const
 {
-	return movies.at(name + std::to_string(year)).first;
+	const sp_movie temp_movie = std::make_shared<Movie>(name, year);
+	const auto found_movie = _movies.find(temp_movie);
+	if (found_movie == _movies.end())
+	{
+		return nullptr;
+	}
+	return found_movie->first;
 }
 
 sp_movie RecommendationSystem::recommend_by_content(const User& user)

@@ -25,7 +25,7 @@ bool operator<(const Movie& lhs, const Movie& rhs)
 {
     if (lhs.get_year() == rhs.get_year())
     {
-        return lhs < rhs;
+        return lhs.get_name() < rhs.get_name();
     }
     return lhs.get_year() < rhs.get_year();
 }
