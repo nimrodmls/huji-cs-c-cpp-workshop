@@ -1,12 +1,34 @@
 #include "MlpNetwork.h"
 
+typedef enum layer_index
+{
+	LAYER_INDEX_1 = 0,
+	LAYER_INDEX_2,
+	LAYER_INDEX_3,
+	LAYER_INDEX_4,
+
+	MAX_LAYERS
+} layer_index;
+
 // See documentation at header file
 MlpNetwork::MlpNetwork(
 	Matrix weights[MLP_SIZE], Matrix biases[MLP_SIZE]) :
-	_layer1(weights[0], biases[0], activation::relu),
-	_layer2(weights[1], biases[1], activation::relu),
-	_layer3(weights[2], biases[2], activation::relu),
-	_layer4(weights[3], biases[3], activation::softmax)
+	_layer1(
+		weights[LAYER_INDEX_1], 
+		biases[LAYER_INDEX_1], 
+		activation::relu),
+	_layer2(
+		weights[LAYER_INDEX_2],
+		biases[LAYER_INDEX_2],
+		activation::relu),
+	_layer3(
+		weights[LAYER_INDEX_3],
+		biases[LAYER_INDEX_3],
+		activation::relu),
+	_layer4(
+		weights[LAYER_INDEX_4],
+		biases[LAYER_INDEX_4],
+		activation::softmax)
 {}
 
 // See documentation at header file
