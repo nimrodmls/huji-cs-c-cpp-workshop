@@ -19,9 +19,9 @@ const std::string& User::get_name() const
 	return _username;
 }
 
-rank_map User::get_ranks()
+const rank_map& User::get_ranks() const
 {
-	return rank_map();
+	return _user_ranking;
 }
 
 void User::add_movie_to_rs(const std::string& name, 

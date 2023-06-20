@@ -43,7 +43,7 @@ public:
 	 * a getter for the ranks map
 	 * @return
 	 */
-	rank_map get_ranks();
+	const rank_map& get_ranks() const;
 
 	/**
 	 * function for adding a movie to the DB
@@ -63,20 +63,25 @@ public:
 	sp_movie get_recommendation_by_content() const;
 
 	/**
-	 * returns a recommendation according to the similarity recommendation method
-	 * @param movie_count the number of the most similar movies to calculate by
-	 * @return recommendation
+	 * returns a recommendation according to the
+	 * similarity recommendation method
+	 * @param movie_count - the number of the most
+	 *						similar movies to calculate by
+	 * @return The recommended movie
 	 */
 	sp_movie get_recommendation_by_cf(int movie_count) const;
 
 	/**
 	 * predicts the score for a given movie
-	 * @param name the name of the movie
-	 * @param year the year the movie was created
-	 * @param movie_count the parameter which represents the number of the most similar movies to predict the score by
+	 * @param name - the name of the movie
+	 * @param year - the year the movie was created
+	 * @param movie_count - the parameter which represents
+	 *					    the number of the most similar movies
+	 *					    to predict the score by
 	 * @return predicted score for the given movie
 	 */
-	double get_prediction_score_for_movie(const std::string& name, int year, int movie_count) const;
+	double get_prediction_score_for_movie(
+		const std::string& name, int year, int movie_count) const;
 
 private:
 	std::string _username;

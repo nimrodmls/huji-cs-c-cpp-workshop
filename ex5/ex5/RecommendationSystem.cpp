@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "RecommendationSystem.h"
 
 RecommendationSystem::RecommendationSystem() :
@@ -38,6 +40,15 @@ sp_movie RecommendationSystem::get_movie(
 
 sp_movie RecommendationSystem::recommend_by_content(const User& user)
 {
+	rank_map ranks = user.get_ranks();
+	auto acc = std::accumulate(
+		ranks.begin(), 
+		ranks.end(), 
+		0.0, 
+		[](double total, const std::pair<sp_movie, double>& obj)
+			{
+				return total + obj.second;
+			});
 	return nullptr;
 }
 

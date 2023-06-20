@@ -13,6 +13,7 @@ int wmain()
 	user_1.add_movie_to_rs("Twilight", 2008, std::vector<double>(), 5);
 
 	auto a = rsys->get_movie("Titanic", 1997);
+	user_1.get_recommendation_by_content();
 
 	return 0;
 }
