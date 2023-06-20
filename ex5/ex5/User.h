@@ -10,8 +10,9 @@
 
 // Forward declaration, to prevent circular includes
 class RecommendationSystem;
-// Unique Ptr for the Recommendataion System
+// Ptrs for Recommendataion System
 using up_rec_system = std::unique_ptr<RecommendationSystem>;
+using sp_rec_system = std::shared_ptr<RecommendationSystem>;
 
 typedef std::unordered_map<sp_movie, double, hash_func,equal_func> rank_map;
 
@@ -23,7 +24,7 @@ public:
 	 */
 	User(const std::string& username, 
 	     rank_map user_ranks, 
-		 up_rec_system rec_system);
+		 const sp_rec_system& rec_system);
 
 	// Explicitly defining copy & move to prevent implicit defs
 	User(const User&) = delete;
@@ -39,21 +40,21 @@ public:
 	const std::string& get_name() const;
 
 	/**
+	 * a getter for the ranks map
+	 * @return
+	 */
+	rank_map get_ranks();
+
+	/**
 	 * function for adding a movie to the DB
 	 * @param name name of movie
      * @param year year it was made
 	 * @param features a vector of the movie's features
 	 * @param rate the user rate for this movie
 	 */
-	void add_movie_to_rs(const std::string &name, int year,
-                         const std::vector<double> &features,
+	void add_movie_to_rs(const std::string& name, int year,
+                         const std::vector<double>& features,
                          double rate);
-
-    /**
-     * a getter for the ranks map
-     * @return
-     */
-	rank_map get_ranks();
 
 	/**
 	 * returns a recommendation according to the movie's content
@@ -63,19 +64,24 @@ public:
 
 	/**
 	 * returns a recommendation according to the similarity recommendation method
-	 * @param k the number of the most similar movies to calculate by
+	 * @param movie_count the number of the most similar movies to calculate by
 	 * @return recommendation
 	 */
-	sp_movie get_recommendation_by_cf(int k) const;
+	sp_movie get_recommendation_by_cf(int movie_count) const;
 
 	/**
 	 * predicts the score for a given movie
 	 * @param name the name of the movie
 	 * @param year the year the movie was created
-	 * @param k the parameter which represents the number of the most similar movies to predict the score by
+	 * @param movie_count the parameter which represents the number of the most similar movies to predict the score by
 	 * @return predicted score for the given movie
 	 */
-	double get_prediction_score_for_movie(const std::string& name, int year, int k) const;
+	double get_prediction_score_for_movie(const std::string& name, int year, int movie_count) const;
+
+private:
+	std::string _username;
+	rank_map _user_ranking;
+	sp_rec_system _recommendation_system;
 };
 
 /**
