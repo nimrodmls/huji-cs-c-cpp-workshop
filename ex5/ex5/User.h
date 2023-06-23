@@ -15,6 +15,7 @@ using up_rec_system = std::unique_ptr<RecommendationSystem>;
 using sp_rec_system = std::shared_ptr<RecommendationSystem>;
 
 typedef std::unordered_map<sp_movie, double, hash_func,equal_func> rank_map;
+using up_rank_map = std::unique_ptr<rank_map>;
 
 class User
 {

@@ -33,7 +33,7 @@ bool operator<(const Movie& lhs, const Movie& rhs)
 // See documentation at header file
 std::ostream& operator<<(std::ostream& os, const Movie& movie)
 {
-    os << movie.get_name() << " (" << movie.get_year() << ")\n";
+    os << movie.get_name() << " (" << movie.get_year() << ")" << std::endl;
     return os;
 }
 

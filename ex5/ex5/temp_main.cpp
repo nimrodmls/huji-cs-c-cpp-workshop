@@ -15,5 +15,7 @@ int wmain()
 	auto a = rsys->get_movie("Titanic", 1997);
 	user_1.get_recommendation_by_content();
 
+	std::cout << *rsys;
+
 	return 0;
 }

@@ -9,8 +9,9 @@
 using movie_comperator = 
 	std::function<bool(const sp_movie&, const sp_movie&)>;
 
+using movie_features = std::vector<double>;
 using movie_db = 
-	std::map<sp_movie, std::vector<double>, movie_comperator>;
+	std::map<sp_movie, movie_features, movie_comperator>;
 
 class RecommendationSystem
 {
@@ -66,7 +67,6 @@ public:
      */
 	sp_movie recommend_by_cf(const User& user, int movie_count);
 
-
     /**
      * Predict a user rating for a movie given argument
      * using item cf procedure with k most similar _movies.
@@ -78,10 +78,18 @@ public:
      */
 	double predict_movie_score(
         const User& user, const sp_movie& movie, int movie_count);
-private:
-    movie_db _movies;
-};
 
-std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs);
+    friend std::ostream& operator<<(
+        std::ostream& os, const RecommendationSystem& rs);
+
+private:
+    static up_rank_map _normalize_ranks(const rank_map& user_ranks);
+
+    movie_features _calculate_preferences(
+        const up_rank_map& normalized_ranks);
+
+    movie_db _movies;
+    size_t _feature_count;
+};
 
 #endif //RECOMMENDATIONSYSTEM_H
