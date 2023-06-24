@@ -1,4 +1,5 @@
 #include <numeric>
+#include <cmath>
 
 #include "RecommendationSystem.h"
 
@@ -33,25 +34,42 @@ sp_movie RecommendationSystem::get_movie(
 {
 	const sp_movie temp_movie = std::make_shared<Movie>(name, year);
 	const auto found_movie = _movies.find(temp_movie);
-	if (found_movie == _movies.end())
+	if (_movies.end() == found_movie)
 	{
 		return nullptr;
 	}
+
 	return found_movie->first;
 }
 
 sp_movie RecommendationSystem::recommend_by_content(const User& user)
 {
-	rank_map ranks = user.get_ranks();
-	auto acc = std::accumulate(
-		ranks.begin(), 
-		ranks.end(), 
-		0.0, 
-		[](double total, const std::pair<sp_movie, double>& obj)
+	up_rank_map normalized_ranks = 
+		_normalize_ranks(user.get_ranks());
+
+	double rec_value = 0;
+	sp_movie rec_movie = nullptr;
+
+	for (const auto& movie : _movies)
+	{
+		// Only checking the movies which weren't watched by the user
+		if (normalized_ranks->end() == 
+			normalized_ranks->find(movie.first))
+		{
+			double similarity = _calculate_movie_similarity(
+				_calculate_preferences(
+					*normalized_ranks.get()), movie.second);
+			// Checking if the similarity is greater, if so, update
+			// the recommendation
+			if (similarity > rec_value)
 			{
-				return total + obj.second;
-			});
-	return nullptr;
+				rec_value = similarity;
+				rec_movie = movie.first;
+			}
+		}
+	}
+
+	return rec_movie;
 }
 
 sp_movie RecommendationSystem::recommend_by_cf(const User& user, int movie_count)
@@ -68,7 +86,7 @@ double RecommendationSystem::predict_movie_score(
 up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
 {
 	double ranks_sum = 0;
-	for (auto& rank : user_ranks)
+	for (const auto& rank : user_ranks)
 	{
 		ranks_sum += rank.second;
 	}
@@ -85,12 +103,37 @@ up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
 	return std::move(normalized);
 }
 
+double RecommendationSystem::_get_norm(const movie_features& vec)
+{
+	double quadratic_sum = 0;
+
+	for (const auto& value : vec)
+	{
+		quadratic_sum += value;
+	}
+
+	return std::sqrt(quadratic_sum);
+}
+
+double RecommendationSystem::_dot_product(
+	const movie_features& vec1, const movie_features& vec2)
+{
+	double product = 0;
+
+	for (uint32_t index = 0; index < vec1.size(); index++)
+	{
+		product += vec1[index] * vec2[index];
+	}
+
+	return product;
+}
+
 movie_features RecommendationSystem::_calculate_preferences(
-	const up_rank_map& normalized_ranks)
+	const rank_map& normalized_ranks)
 {
 	movie_features preferences(_feature_count);
 
-	for (auto& rank : *normalized_ranks)
+	for (auto& rank : normalized_ranks)
 	{
 		// fetching the features of the current movie in the ranks
 		// and multiplying it by the normalized rank
@@ -102,6 +145,14 @@ movie_features RecommendationSystem::_calculate_preferences(
 	}
 
 	return preferences;
+}
+
+double RecommendationSystem::_calculate_movie_similarity(
+	const movie_features& preferences, 
+	const movie_features& movie_pref)
+{
+	double norm = _get_norm(preferences) * _get_norm(movie_pref);
+	return _dot_product(preferences, movie_pref) / norm;
 }
 
 std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs)

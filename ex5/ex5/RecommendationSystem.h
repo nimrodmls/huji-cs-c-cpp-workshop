@@ -84,9 +84,15 @@ public:
 
 private:
     static up_rank_map _normalize_ranks(const rank_map& user_ranks);
+    static double _get_norm(const movie_features& vec);
+    static double _dot_product(
+        const movie_features& vec1, const movie_features& vec2);
 
     movie_features _calculate_preferences(
-        const up_rank_map& normalized_ranks);
+        const rank_map& normalized_ranks);
+    double _calculate_movie_similarity(
+        const movie_features& preferences, 
+        const movie_features& movie_pref);
 
     movie_db _movies;
     size_t _feature_count;
