@@ -109,6 +109,8 @@ double RecommendationSystem::predict_movie_score(
 		multiplicity_sum += 
 			current_max.second * user_ranks.at(current_max.first);
 		similarity_sum += current_max.second;
+		// Removing the top element
+		highest_similarity.pop();
 	}
 
 	return multiplicity_sum / similarity_sum;
