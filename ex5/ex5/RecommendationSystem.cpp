@@ -1,5 +1,6 @@
 #include <numeric>
 #include <cmath>
+#include <queue>
 
 #include "RecommendationSystem.h"
 
@@ -80,7 +81,37 @@ sp_movie RecommendationSystem::recommend_by_cf(const User& user, int movie_count
 double RecommendationSystem::predict_movie_score(
 	const User& user, const sp_movie& movie, int movie_count)
 {
-	return 0;
+	std::priority_queue<
+		movie_rank_pair, 
+		std::vector<movie_rank_pair>, 
+		priority_comparator>
+			highest_similarity(
+				[](movie_rank_pair movie1, movie_rank_pair movie2)
+				{
+					return movie1.second < movie2.second;
+				});
+
+	auto& user_ranks = user.get_ranks();
+	for (const auto& user_movie : user_ranks)
+	{
+		double similarity = _calculate_movie_similarity(_movies
+			[user_movie.first], _movies[movie]);
+
+		highest_similarity.push(
+			std::make_pair(user_movie.first, similarity));
+	}
+
+	double similarity_sum = 0;
+	double multiplicity_sum = 0;
+	for (int index = 0; index < movie_count; index++)
+	{
+		auto& current_max = highest_similarity.top();
+		multiplicity_sum += 
+			current_max.second * user_ranks.at(current_max.first);
+		similarity_sum += current_max.second;
+	}
+
+	return multiplicity_sum / similarity_sum;
 }
 
 up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
@@ -149,10 +180,10 @@ movie_features RecommendationSystem::_calculate_preferences(
 
 double RecommendationSystem::_calculate_movie_similarity(
 	const movie_features& preferences, 
-	const movie_features& movie_pref)
+	const movie_features& features)
 {
-	double norm = _get_norm(preferences) * _get_norm(movie_pref);
-	return _dot_product(preferences, movie_pref) / norm;
+	double norm = _get_norm(preferences) * _get_norm(features);
+	return _dot_product(preferences, features) / norm;
 }
 
 std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs)
