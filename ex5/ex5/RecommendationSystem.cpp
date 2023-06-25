@@ -48,7 +48,7 @@ sp_movie RecommendationSystem::recommend_by_content(const User& user)
 	const up_rank_map normalized_ranks = 
 		_normalize_ranks(user.get_ranks());
 
-	double rec_value = 0;
+	double rec_value = -1;
 	sp_movie rec_movie = nullptr;
 
 	for (const auto& movie : _movies)
@@ -155,7 +155,7 @@ up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
 		rank.second -= ranks_sum;
 	}
 
-	return std::move(normalized);
+	return normalized;
 }
 
 double RecommendationSystem::_get_norm(const movie_features& vec)
@@ -202,7 +202,7 @@ movie_features RecommendationSystem::_calculate_preferences(
 		// and multiplying it by the normalized rank
 		for (uint32_t index = 0; index < _feature_count; index++)
 		{
-			preferences[index] = 
+			preferences[index] += 
 				rank.second * _movies[rank.first][index];
 		}
 	}

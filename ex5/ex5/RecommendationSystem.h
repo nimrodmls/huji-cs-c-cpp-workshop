@@ -23,14 +23,6 @@ public:
     explicit RecommendationSystem();
 
     // Explicitly defining copy & move to prevent implicit defs
-    RecommendationSystem(
-        const RecommendationSystem&) = delete;
-    RecommendationSystem& operator=(
-        const RecommendationSystem&) = delete;
-    RecommendationSystem(
-        const RecommendationSystem&&) = delete;
-    RecommendationSystem& operator=(
-        const RecommendationSystem&&) = delete;
     ~RecommendationSystem() = default;
 
     /**

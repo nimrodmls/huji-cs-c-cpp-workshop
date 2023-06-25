@@ -31,10 +31,6 @@ public:
     Movie(const std::string& name, int year);
 
     // Explicitly defining copy & move to prevent implicit defs
-    Movie(const Movie&) = delete;
-    Movie& operator=(const Movie&) = delete;
-    Movie(const Movie&&) = delete;
-    Movie& operator=(const Movie&&) = delete;
     ~Movie() = default;
 
     /**
