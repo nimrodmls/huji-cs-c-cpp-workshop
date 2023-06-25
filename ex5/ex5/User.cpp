@@ -58,7 +58,7 @@ std::ostream& operator<<(
 	 std::ostream& os, const User& user)
 {
 	os << "name: " << user._username << std::endl;
-	os << user._recommendation_system;
+	os << *user._recommendation_system;
 
 	return os;
 }
