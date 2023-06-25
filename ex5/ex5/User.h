@@ -28,10 +28,6 @@ public:
 		 const sp_rec_system& rec_system);
 
 	// Explicitly defining copy & move to prevent implicit defs
-	User(const User&) = delete;
-	User& operator=(const User&) = delete;
-	User(const User&&) = delete;
-	User& operator=(const User&&) = delete;
 	~User() = default;
 
 	/**
@@ -84,18 +80,18 @@ public:
 	double get_prediction_score_for_movie(
 		const std::string& name, int year, int movie_count) const;
 
+	/**
+	 * output stream operator
+	 * @param os the output stream
+	 * @param user the user
+	 * @return output stream
+	 */
+	friend std::ostream& operator<<(std::ostream& os, const User& user);
+
 private:
 	std::string _username;
 	rank_map _user_ranking;
 	sp_rec_system _recommendation_system;
 };
-
-/**
- * output stream operator
- * @param os the output stream
- * @param user the user
- * @return output stream
- */
-std::ostream&& operator<<(const std::ostream& os, const User& user);
 
 #endif //USER_H

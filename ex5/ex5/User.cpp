@@ -53,3 +53,12 @@ double User::get_prediction_score_for_movie(
 	return _recommendation_system->predict_movie_score(
 		*this, movie, movie_count);
 }
+
+std::ostream& operator<<(
+	 std::ostream& os, const User& user)
+{
+	os << "name: " << user._username << std::endl;
+	os << user._recommendation_system;
+
+	return os;
+}

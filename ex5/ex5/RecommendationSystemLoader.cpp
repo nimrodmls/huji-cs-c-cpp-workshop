@@ -6,10 +6,10 @@
 #define ERROR_MSG "input file is incorrect"
 
 
-/*ptr_type*/ RecommendationSystemLoader::create_rs_from_movies(const
+up_rec_system RecommendationSystemLoader::create_rs_from_movies(const
 std::string &movies_file_path) noexcept(false)
 {
-    /*ptr_type*/ rs = /*use the right std::make... */
+    up_rec_system rs = std::make_unique<RecommendationSystem>();
     std::ifstream in_file;
     in_file.open(movies_file_path);
     std::string buffer;
