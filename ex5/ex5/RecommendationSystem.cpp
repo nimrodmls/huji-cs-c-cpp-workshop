@@ -45,7 +45,7 @@ sp_movie RecommendationSystem::get_movie(
 
 sp_movie RecommendationSystem::recommend_by_content(const User& user)
 {
-	up_rank_map normalized_ranks = 
+	const up_rank_map normalized_ranks = 
 		_normalize_ranks(user.get_ranks());
 
 	double rec_value = 0;
@@ -57,7 +57,7 @@ sp_movie RecommendationSystem::recommend_by_content(const User& user)
 		if (normalized_ranks->end() == 
 			normalized_ranks->find(movie.first))
 		{
-			double similarity = _calculate_movie_similarity(
+			const double similarity = _calculate_movie_similarity(
 				_calculate_preferences(
 					*normalized_ranks.get()), movie.second);
 			// Checking if the similarity is greater, if so, update
@@ -73,9 +73,30 @@ sp_movie RecommendationSystem::recommend_by_content(const User& user)
 	return rec_movie;
 }
 
-sp_movie RecommendationSystem::recommend_by_cf(const User& user, int movie_count)
+sp_movie RecommendationSystem::recommend_by_cf(
+	const User& user, int movie_count)
 {
-	return nullptr;
+	const rank_map& user_ranks = user.get_ranks();
+	sp_movie current_movie = nullptr;
+	double current_score = 0;
+
+	for (const auto& movie : _movies)
+	{
+		// Only checking the movies which weren't watched by the user
+		if (user_ranks.end() ==
+			user_ranks.find(movie.first))
+		{
+			const double new_score = predict_movie_score(
+				user, movie.first, movie_count);
+			if (current_score < new_score)
+			{
+				current_score = new_score;
+				current_movie = movie.first;
+			}
+		}
+	}
+
+	return current_movie;
 }
 
 double RecommendationSystem::predict_movie_score(
@@ -86,7 +107,8 @@ double RecommendationSystem::predict_movie_score(
 		std::vector<movie_rank_pair>, 
 		priority_comparator>
 			highest_similarity(
-				[](movie_rank_pair movie1, movie_rank_pair movie2)
+				[](const movie_rank_pair& movie1, 
+				   const movie_rank_pair& movie2)
 				{
 					return movie1.second < movie2.second;
 				});
@@ -142,7 +164,7 @@ double RecommendationSystem::_get_norm(const movie_features& vec)
 
 	for (const auto& value : vec)
 	{
-		quadratic_sum += value;
+		quadratic_sum += std::pow(value, 2);
 	}
 
 	return std::sqrt(quadratic_sum);
@@ -159,6 +181,14 @@ double RecommendationSystem::_dot_product(
 	}
 
 	return product;
+}
+
+double RecommendationSystem::_calculate_movie_similarity(
+	const movie_features& preferences,
+	const movie_features& features)
+{
+	double norm = _get_norm(preferences) * _get_norm(features);
+	return _dot_product(preferences, features) / norm;
 }
 
 movie_features RecommendationSystem::_calculate_preferences(
@@ -180,17 +210,10 @@ movie_features RecommendationSystem::_calculate_preferences(
 	return preferences;
 }
 
-double RecommendationSystem::_calculate_movie_similarity(
-	const movie_features& preferences, 
-	const movie_features& features)
+std::ostream& operator<<(
+	std::ostream& os, const RecommendationSystem& rs)
 {
-	double norm = _get_norm(preferences) * _get_norm(features);
-	return _dot_product(preferences, features) / norm;
-}
-
-std::ostream& operator<<(std::ostream& os, const RecommendationSystem& rs)
-{
-	for (auto& movie : rs._movies)
+	for (const auto& movie : rs._movies)
 	{
 		os << *movie.first;
 	}

@@ -10,7 +10,8 @@ using movie_comperator =
 	std::function<bool(const sp_movie&, const sp_movie&)>;
 using movie_rank_pair = std::pair<sp_movie, double>;
 using priority_comparator =
-    std::function<bool(movie_rank_pair, movie_rank_pair)>;
+    std::function<bool(
+        const movie_rank_pair&, const movie_rank_pair&)>;
 
 using movie_features = std::vector<double>;
 using movie_db = 
@@ -90,13 +91,13 @@ private:
     static double _get_norm(const movie_features& vec);
     static double _dot_product(
         const movie_features& vec1, const movie_features& vec2);
+    static double _calculate_movie_similarity(
+        const movie_features& preferences,
+        const movie_features& features);
 
     movie_features _calculate_preferences(
         const rank_map& normalized_ranks);
-    double _calculate_movie_similarity(
-        const movie_features& preferences, 
-        const movie_features& features);
-
+    
     movie_db _movies;
     size_t _feature_count;
 };
