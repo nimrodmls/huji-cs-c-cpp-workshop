@@ -1,0 +1,1 @@
+m varDecl(hasType(cxxRecordDecl(hasName("Dense"))), hasAncestor(functionDecl(hasName("MlpNetwork::operator()"))))
