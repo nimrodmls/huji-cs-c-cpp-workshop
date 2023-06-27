@@ -52,8 +52,8 @@ std::size_t sp_movie_hash(const sp_movie& movie)
 
 /**
  * equal function used for an unordered_map (implemented for you)
- * @param m1
- * @param m2
+ * @param m1 - Movie
+ * @param m2 - Movie
  * @return true if the year and name are equal else false
  */
 bool sp_movie_equal(const sp_movie& m1, const sp_movie& m2)

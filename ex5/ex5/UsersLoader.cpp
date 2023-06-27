@@ -23,8 +23,9 @@ noexcept(false)
     while (movies_names >> buffer)
     {
         size_t end = buffer.find(YEAR_SEPARATOR);
-        sp_movie m = s_rs->get_movie(buffer.substr(0, end),
-                                      std::stoi(buffer.substr(end + 1, buffer.length())));
+        sp_movie m = s_rs->get_movie(
+            buffer.substr(0, end),
+            std::stoi(buffer.substr(end + 1, buffer.length())));
         movies.push_back(m);
     }
     while (getline(in_file, buffer))
@@ -34,7 +35,8 @@ noexcept(false)
         std::istringstream splitted_line(buffer);
         splitted_line >> user_name;
         int i = 0;
-        rank_map ranks(INIT_BUCKET_SIZE,sp_movie_hash,sp_movie_equal);
+        rank_map ranks(
+            INIT_BUCKET_SIZE,sp_movie_hash,sp_movie_equal);
         while (splitted_line >> ranking)
         {
 

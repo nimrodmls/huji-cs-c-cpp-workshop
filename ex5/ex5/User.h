@@ -14,9 +14,16 @@ class RecommendationSystem;
 using up_rec_system = std::unique_ptr<RecommendationSystem>;
 using sp_rec_system = std::shared_ptr<RecommendationSystem>;
 
+// User's ranking data structure
 typedef std::unordered_map<sp_movie, double, hash_func,equal_func> rank_map;
 using up_rank_map = std::unique_ptr<rank_map>;
 
+using movie_features = std::vector<double>;
+
+/**
+ * @class User
+ * @brief A single user in the streaming service
+ */
 class User
 {
 public:
@@ -24,10 +31,8 @@ public:
 	 * Constructor for the class
 	 */
 	User(const std::string& username, 
-	     rank_map user_ranks, 
+	     const rank_map& user_ranks, 
 		 const sp_rec_system& rec_system);
-
-	// Explicitly defining copy & move to prevent implicit defs
 	~User() = default;
 
 	/**
@@ -38,7 +43,7 @@ public:
 
 	/**
 	 * a getter for the ranks map
-	 * @return
+	 * @return the ranking
 	 */
 	const rank_map& get_ranks() const;
 
@@ -49,9 +54,11 @@ public:
 	 * @param features a vector of the movie's features
 	 * @param rate the user rate for this movie
 	 */
-	void add_movie_to_rs(const std::string& name, int year,
-                         const std::vector<double>& features,
-                         double rate);
+	void add_movie_to_rs(
+		const std::string& name, 
+		int year,
+		const movie_features& features,
+		double rate);
 
 	/**
 	 * returns a recommendation according to the movie's content

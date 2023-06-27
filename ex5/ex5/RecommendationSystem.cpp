@@ -1,9 +1,9 @@
 #include <numeric>
 #include <cmath>
-#include <queue>
 
 #include "RecommendationSystem.h"
 
+// See documentation at header file
 RecommendationSystem::RecommendationSystem() :
 	_movies(
 		[](const sp_movie& movie1, const sp_movie& movie2)
@@ -13,10 +13,11 @@ RecommendationSystem::RecommendationSystem() :
 	_feature_count(0)
 {}
 
+// See documentation at header file
 sp_movie RecommendationSystem::add_movie(
 	const std::string& name, 
 	int year, 
-	const std::vector<double>& features)
+	const movie_features& features)
 {
 	auto movie = get_movie(name, year);
 	if (nullptr != movie)
@@ -30,6 +31,7 @@ sp_movie RecommendationSystem::add_movie(
 	return movie;
 }
 
+// See documentation at header file
 sp_movie RecommendationSystem::get_movie(
 	const std::string& name, int year) const
 {
@@ -43,10 +45,12 @@ sp_movie RecommendationSystem::get_movie(
 	return found_movie->first;
 }
 
-sp_movie RecommendationSystem::recommend_by_content(const User& user)
+// See documentation at header file
+sp_movie RecommendationSystem::recommend_by_content(
+	const User& user) const
 {
 	const up_rank_map normalized_ranks = 
-		_normalize_ranks(user.get_ranks());
+		normalize_ranks(user.get_ranks());
 
 	double rec_value = -1;
 	sp_movie rec_movie = nullptr;
@@ -57,8 +61,8 @@ sp_movie RecommendationSystem::recommend_by_content(const User& user)
 		if (normalized_ranks->end() == 
 			normalized_ranks->find(movie.first))
 		{
-			const double similarity = _calculate_movie_similarity(
-				_calculate_preferences(
+			const double similarity = calculate_movie_similarity(
+				calculate_preferences(
 					*normalized_ranks.get()), movie.second);
 			// Checking if the similarity is greater, if so, update
 			// the recommendation
@@ -73,8 +77,9 @@ sp_movie RecommendationSystem::recommend_by_content(const User& user)
 	return rec_movie;
 }
 
+// See documentation at header file
 sp_movie RecommendationSystem::recommend_by_cf(
-	const User& user, int movie_count)
+	const User& user, int movie_count) const
 {
 	const rank_map& user_ranks = user.get_ranks();
 	sp_movie current_movie = nullptr;
@@ -99,35 +104,42 @@ sp_movie RecommendationSystem::recommend_by_cf(
 	return current_movie;
 }
 
+// See documentation at header file
 double RecommendationSystem::predict_movie_score(
-	const User& user, const sp_movie& movie, int movie_count)
+	const User& user, 
+	const sp_movie& movie, 
+	int movie_count) const
 {
-	std::priority_queue<
-		movie_rank_pair, 
-		std::vector<movie_rank_pair>, 
-		priority_comparator>
-			highest_similarity(
-				[](const movie_rank_pair& movie1, 
-				   const movie_rank_pair& movie2)
-				{
-					return movie1.second < movie2.second;
-				});
+	// Creating max heap to store all similarities within,
+	// in the end we will take the k (movie_count) highest
+	scores_max_heap highest_similarity(
+				[](
+					const movie_rank_pair& movie1, 
+					const movie_rank_pair& movie2)
+					{
+						// Comparing the SCORES
+						return movie1.second < movie2.second;
+					});
 
-	auto& user_ranks = user.get_ranks();
+	// Calculating the similarity of each movie the user watched
+	// with the given movie
+	const auto& user_ranks = user.get_ranks();
 	for (const auto& user_movie : user_ranks)
 	{
-		double similarity = _calculate_movie_similarity(_movies
-			[user_movie.first], _movies[movie]);
+		double similarity = calculate_movie_similarity(
+			_movies.at(user_movie.first), _movies.at(movie));
 
 		highest_similarity.push(
 			std::make_pair(user_movie.first, similarity));
 	}
 
+	// Now taking only the k-highest similarities, and calculating
+	// the predicted score with the formula
 	double similarity_sum = 0;
 	double multiplicity_sum = 0;
 	for (int index = 0; index < movie_count; index++)
 	{
-		auto& current_max = highest_similarity.top();
+		const auto& current_max = highest_similarity.top();
 		multiplicity_sum += 
 			current_max.second * user_ranks.at(current_max.first);
 		similarity_sum += current_max.second;
@@ -138,7 +150,8 @@ double RecommendationSystem::predict_movie_score(
 	return multiplicity_sum / similarity_sum;
 }
 
-up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
+// See documentation at header file
+up_rank_map RecommendationSystem::normalize_ranks(const rank_map& user_ranks)
 {
 	double ranks_sum = 0;
 	for (const auto& rank : user_ranks)
@@ -146,7 +159,7 @@ up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
 		ranks_sum += rank.second;
 	}
 	// Calculating the average, as the sum has no use for us
-	ranks_sum = ranks_sum / user_ranks.size();
+	ranks_sum = ranks_sum / static_cast<double>(user_ranks.size());
 
 	up_rank_map normalized = std::make_unique<rank_map>(user_ranks);
 
@@ -158,7 +171,8 @@ up_rank_map RecommendationSystem::_normalize_ranks(const rank_map& user_ranks)
 	return normalized;
 }
 
-double RecommendationSystem::_get_norm(const movie_features& vec)
+// See documentation at header file
+double RecommendationSystem::get_norm(const movie_features& vec)
 {
 	double quadratic_sum = 0;
 
@@ -170,7 +184,8 @@ double RecommendationSystem::_get_norm(const movie_features& vec)
 	return std::sqrt(quadratic_sum);
 }
 
-double RecommendationSystem::_dot_product(
+// See documentation at header file
+double RecommendationSystem::dot_product(
 	const movie_features& vec1, const movie_features& vec2)
 {
 	double product = 0;
@@ -183,33 +198,36 @@ double RecommendationSystem::_dot_product(
 	return product;
 }
 
-double RecommendationSystem::_calculate_movie_similarity(
+// See documentation at header file
+double RecommendationSystem::calculate_movie_similarity(
 	const movie_features& preferences,
 	const movie_features& features)
 {
-	double norm = _get_norm(preferences) * _get_norm(features);
-	return _dot_product(preferences, features) / norm;
+	double norm = get_norm(preferences) * get_norm(features);
+	return dot_product(preferences, features) / norm;
 }
 
-movie_features RecommendationSystem::_calculate_preferences(
-	const rank_map& normalized_ranks)
+// See documentation at header file
+movie_features RecommendationSystem::calculate_preferences(
+	const rank_map& normalized_ranks) const
 {
 	movie_features preferences(_feature_count);
 
-	for (auto& rank : normalized_ranks)
+	for (const auto& rank : normalized_ranks)
 	{
 		// fetching the features of the current movie in the ranks
 		// and multiplying it by the normalized rank
 		for (uint32_t index = 0; index < _feature_count; index++)
 		{
 			preferences[index] += 
-				rank.second * _movies[rank.first][index];
+				rank.second * _movies.at(rank.first)[index];
 		}
 	}
 
 	return preferences;
 }
 
+// See documentation at header file
 std::ostream& operator<<(
 	std::ostream& os, const RecommendationSystem& rs)
 {

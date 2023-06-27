@@ -8,18 +8,21 @@
 #define HASH_START 17
 
 class Movie;
-
-typedef std::shared_ptr<Movie> sp_movie; // define your smart pointer
+typedef std::shared_ptr<Movie> sp_movie;
 
 /**
- * those declartions and typedefs are given to you and should be used in the ex
+ * those declartions and typedefs are given to you
+ * and should be used in the ex
  */
 typedef std::size_t (*hash_func)(const sp_movie& movie);
 typedef bool (*equal_func)(const sp_movie& m1,const sp_movie& m2);
-
 std::size_t sp_movie_hash(const sp_movie& movie);
 bool sp_movie_equal(const sp_movie& m1,const sp_movie& m2);
 
+/**
+ * @class Movie
+ * @brief Stores movie metadata
+ */
 class Movie
 {
 public:
@@ -29,8 +32,6 @@ public:
      * @param year - year it was made
      */
     Movie(const std::string& name, int year);
-
-    // Explicitly defining copy & move to prevent implicit defs
     ~Movie() = default;
 
     /**

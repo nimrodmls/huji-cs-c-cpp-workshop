@@ -29,7 +29,10 @@ std::string &movies_file_path) noexcept(false)
             vec.push_back(ranking);
         }
         size_t end = buffer.find(YEAR_SEPARATOR);
-        rs->add_movie(buffer.substr(0, end), std::stoi(buffer.substr(end + 1, buffer.length())), vec);
+        rs->add_movie(
+            buffer.substr(0, end), 
+            std::stoi(
+                buffer.substr(end + 1, buffer.length())), vec);
     }
     in_file.close();
     return rs;
