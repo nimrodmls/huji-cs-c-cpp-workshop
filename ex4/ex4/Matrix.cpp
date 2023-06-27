@@ -267,7 +267,7 @@ bool Matrix::is_out_of_range(int index, int size)
 // See documentation at header file
 bool Matrix::validate_dimensions(const Matrix& other) const
 {
-	return (_columns == other.get_cols()) || 
+	return (_columns == other.get_cols()) && 
 		   (_rows == other.get_rows());
 }
 
